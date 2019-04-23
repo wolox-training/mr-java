@@ -51,6 +51,8 @@ public class Book {
     @Column
     private String isbn;
 
+    public Long getId() { return id; }
+
     public String getAuthor() {
         return author;
     }
