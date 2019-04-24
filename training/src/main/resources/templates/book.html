@@ -5,6 +5,22 @@
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
 </head>
 <body>
-<p th:text="'Book title: ' + ${name} " />
+
+<form ACTION="#" th:action="@{/create}" th:object="${book}" method="POST">
+  <!--<input type="hidden" th:field="*{book.id}"/>-->
+
+  <input type="text" th:field="*{author}"/>
+  <input type="text" th:field="*{genre}"/>
+  <input type="text" th:field="*{image}"/>
+  <input type="text" th:field="*{isbn}"/>
+  <input type="text" th:field="*{pages}"/>
+  <input type="text" th:field="*{publisher}"/>
+  <input type="text" th:field="*{subtitle}"/>
+  <input type="text" th:field="*{title}"/>
+  <input type="text" th:field="*{year}"/>
+
+  <button type="submit">Submit</button>
+</form>
+
 </body>
 </html>

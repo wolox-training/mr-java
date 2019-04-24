@@ -9,7 +9,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
 import wolox.training.exceptions.BookNotFoundException;
@@ -35,7 +38,22 @@ public class BookController {
 
     //create
         //already existing book
+    @RequestMapping(value = "/create", method = RequestMethod.POST)
+    //public String create(@RequestParam(name="author")String author, @RequestParam(name="genre") String genre, @RequestParam(name="image") String image, Model model){
+    public String create(Book book, Model model){
 
+        Book newBook = new Book();
+        newBook = book;
+
+        try{
+            bookRepository.save(newBook);
+        }catch (Exception ex){
+            throw new ResponseStatusException(HttpStatus.CONFLICT, ex.toString(), ex);
+        }
+
+        return "redirect:/read/1";
+
+    }
     //readAll
     @GetMapping("/books")
     public String books(Model model){
@@ -50,14 +68,15 @@ public class BookController {
     public String read(@PathVariable("id")Long id, Model model){
 
         try{
-        Book book = bookRepository.getOne(id);
+        Book book = bookRepository.findById(id).get();
 
-        model.addAttribute("name", book.getTitle());
+        model.addAttribute("book", book);
 
         }catch(EntityNotFoundException ex){
 
            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found", ex);
         }
+
         return "book";
 
     }
