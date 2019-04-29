@@ -5,6 +5,7 @@ import java.util.List;
 import javax.persistence.EntityNotFoundException;
 import org.omg.CORBA.INTERNAL;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 import wolox.training.exceptions.BookNotFoundException;
 import wolox.training.models.Book;
@@ -39,19 +41,19 @@ public class BookController {
     //create
         //already existing book
     @RequestMapping(value = "/create", method = RequestMethod.POST)
-    //public String create(@RequestParam(name="author")String author, @RequestParam(name="genre") String genre, @RequestParam(name="image") String image, Model model){
-    public String create(Book book, Model model){
+    public String create(Book book, Model model) {
 
-        Book newBook = new Book();
-        newBook = book;
+        Book newBook = book;
 
-        try{
-            bookRepository.save(newBook);
+        try {
+            bookRepository.save(book);
+        }catch(DataIntegrityViolationException ex){
+            throw new ResponseStatusException(HttpStatus.CONFLICT, ex.getMessage(), ex);
         }catch (Exception ex){
             throw new ResponseStatusException(HttpStatus.CONFLICT, ex.toString(), ex);
         }
 
-        return "redirect:/read/1";
+        return "redirect:/books";
 
     }
     //readAll
@@ -64,18 +66,23 @@ public class BookController {
     }
 
     //readOne
-    @GetMapping("/read/{id}")
-    public String read(@PathVariable("id")Long id, Model model){
+    @GetMapping("/book")
+    public String read(@RequestParam(name="id", required=false, defaultValue="-1") Long id, Model model){
 
-        try{
-        Book book = bookRepository.findById(id).get();
+        Book book = new Book();
+        if(id!=-1) {
+            try {
+                book = bookRepository.findById(id).get();
+
+
+
+            } catch (EntityNotFoundException ex) {
+
+                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found", ex);
+            }
+        }
 
         model.addAttribute("book", book);
-
-        }catch(EntityNotFoundException ex){
-
-           throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found", ex);
-        }
 
         return "book";
 
@@ -85,8 +92,8 @@ public class BookController {
 
 
     //delete
-    @GetMapping("/delete/{id}")
-    public String delete(@PathVariable("id")Long id){
+    @GetMapping("/delete")
+    public String delete(@RequestParam(name="id") Long id){
 
         try{
            bookRepository.deleteById(id);

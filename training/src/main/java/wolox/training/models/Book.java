@@ -1,17 +1,22 @@
 package wolox.training.models;
 
 import javax.persistence.Column;
+import javax.persistence.Embeddable;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.validation.constraints.NotNull;
 import org.aspectj.lang.annotation.RequiredTypes;
+import org.springframework.beans.factory.annotation.Required;
+import org.springframework.web.bind.annotation.RequestAttribute;
 
-@Entity
+@Entity @Embeddable
 public class Book {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "id", updatable = false, nullable = false)
     private Long id;
 
     public Book() {
@@ -19,9 +24,9 @@ public class Book {
     }
 
 
-    public Book(Long id, String author, String image, String title, String subtitle, String publisher,
+    public Book(String author, String image, String title, String subtitle, String publisher,
         String year, Integer pages, String isbn) {
-        this.id = id;
+        //this.id = id;
         this.author = author;
         this.image = image;
         this.title = title;
@@ -32,30 +37,33 @@ public class Book {
         this.isbn = isbn;
     }
 
-    @Column
+    @Column @NotNull
     private String genre;
-    @Column
+    @Column @NotNull
     private String author;
-    @Column
+    @Column @NotNull
     private String image;
-    @Column
+    @Column @NotNull
     private String title;
-    @Column
+    @Column @NotNull
     private String subtitle;
-    @Column
+    @Column @NotNull
     private String publisher;
-    @Column
+    @Column @NotNull
     private String year;
-    @Column
+    @Column @NotNull
     private Integer pages;
-    @Column
+    @Column @NotNull
     private String isbn;
 
     public Long getId() { return id; }
 
+    public void setId(Long id){this.id = id;}
+
     public String getAuthor() {
         return author;
     }
+
 
     public void setAuthor(String author) {
         this.author = author;
@@ -123,6 +131,10 @@ public class Book {
 
     public void setGenre(String genre) {
         this.genre = genre;
+    }
+
+    public boolean anyArgumentNull() {
+        return this.author=="" || this.genre=="" || this.image=="" || this.isbn=="" || this.pages==null || this.publisher=="" || this.subtitle=="" || this.title==""|| this.year=="";
     }
 }
 

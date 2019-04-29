@@ -11,11 +11,10 @@ public interface BookRepository extends CrudRepository<Book, Long>  {
 
     public Book findFirstByAuthor(String author);
 
-    public void deleteById(Long id);
+    //public void deleteById(Long id);
 
-    public Book getOne(Long id);
 
-    public List<Book> findAll();
+    public List<Book> findAllByOrderByIdAsc();
 
 
 }
