@@ -3,6 +3,7 @@ package wolox.training.controllers;
 
 import java.util.List;
 import javax.persistence.EntityNotFoundException;
+import javax.persistence.RollbackException;
 import org.omg.CORBA.INTERNAL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -18,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 import wolox.training.exceptions.BookNotFoundException;
+import wolox.training.exceptions.NullArgumentsException;
 import wolox.training.models.Book;
 import wolox.training.repositories.BookRepository;
 import org.springframework.dao.EmptyResultDataAccessException;
@@ -39,18 +41,21 @@ public class BookController {
 
 
     //create
-        //already existing book
     @RequestMapping(value = "/create", method = RequestMethod.POST)
     public String create(Book book, Model model) {
 
-        Book newBook = book;
-
         try {
+
+            if(book.anyArgumentNull()){
+                throw new NullArgumentsException("Atributos vacíos");
+            }
+
             bookRepository.save(book);
         }catch(DataIntegrityViolationException ex){
             throw new ResponseStatusException(HttpStatus.CONFLICT, ex.getMessage(), ex);
-        }catch (Exception ex){
-            throw new ResponseStatusException(HttpStatus.CONFLICT, ex.toString(), ex);
+        }catch (NullArgumentsException ex){
+            throw new ResponseStatusException(HttpStatus.CONFLICT, ex.getMessage(), ex);
+            //debería mostrar cartelito de error pero como no debería hacer las views, no lo hago
         }
 
         return "redirect:/books";
@@ -59,7 +64,7 @@ public class BookController {
     //readAll
     @GetMapping("/books")
     public String books(Model model){
-        List<Book> books = bookRepository.findAll();
+        List<Book> books = bookRepository.findAllByOrderByIdAsc();
 
         model.addAttribute("books", books);
         return "books";
@@ -73,9 +78,6 @@ public class BookController {
         if(id!=-1) {
             try {
                 book = bookRepository.findById(id).get();
-
-
-
             } catch (EntityNotFoundException ex) {
 
                 throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found", ex);
