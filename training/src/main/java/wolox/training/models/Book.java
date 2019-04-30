@@ -18,15 +18,15 @@ public class Book {
 
     public Book(Long id, String author, String image, String title, String subtitle, String publisher,
         String year, Integer pages, String isbn) {
-        this.id = id;
-        this.author = author;
-        this.image = image;
-        this.title = title;
-        this.subtitle = subtitle;
-        this.publisher = publisher;
-        this.year = year;
-        this.pages = pages;
-        this.isbn = isbn;
+        setId(id);
+        setAuthor(author);
+        setImage(image);
+        setTitle(title);
+        setSubtitle(subtitle);
+        setPublisher(publisher);
+        setYear(year);
+        setPages(pages);
+        setIsbn(isbn);
     }
 
     private String genre;
@@ -46,6 +46,10 @@ public class Book {
     private Integer pages;
 
     private String isbn;
+
+    private void setId(Long id) {
+        this.id = id;
+    }
 
     public String getAuthor() {
         return author;
