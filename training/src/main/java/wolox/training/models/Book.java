@@ -6,10 +6,6 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.validation.constraints.NotNull;
-import org.aspectj.lang.annotation.RequiredTypes;
-import org.springframework.beans.factory.annotation.Required;
-import org.springframework.web.bind.annotation.RequestAttribute;
 
 @Entity @Embeddable
 public class Book {
@@ -20,13 +16,12 @@ public class Book {
     private Long id;
 
     public Book() {
-        this.id = null;
+
     }
 
 
     public Book(String author, String image, String title, String subtitle, String publisher,
         String year, Integer pages, String isbn) {
-        //this.id = id;
         this.author = author;
         this.image = image;
         this.title = title;
@@ -37,23 +32,23 @@ public class Book {
         this.isbn = isbn;
     }
 
-    @Column @NotNull
+    @Column(nullable = false)
     private String genre;
-    @Column @NotNull
+    @Column(nullable = false)
     private String author;
-    @Column @NotNull
+    @Column(nullable = false)
     private String image;
-    @Column @NotNull
+    @Column(nullable = false)
     private String title;
-    @Column @NotNull
+    @Column(nullable = false)
     private String subtitle;
-    @Column @NotNull
+    @Column(nullable = false)
     private String publisher;
-    @Column @NotNull
+    @Column(nullable = false)
     private String year;
-    @Column @NotNull
+    @Column(nullable = false)
     private Integer pages;
-    @Column @NotNull
+    @Column(nullable = false)
     private String isbn;
 
     public Long getId() { return id; }
@@ -133,8 +128,5 @@ public class Book {
         this.genre = genre;
     }
 
-    public boolean anyArgumentNull() {
-        return this.author=="" || this.genre=="" || this.image=="" || this.isbn=="" || this.pages==null || this.publisher=="" || this.subtitle=="" || this.title==""|| this.year=="";
-    }
 }
 
