@@ -1,11 +1,9 @@
 package wolox.training.models;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import org.aspectj.lang.annotation.RequiredTypes;
 
 @Entity
 public class Book {
@@ -15,7 +13,6 @@ public class Book {
     private Long id;
 
     public Book() {
-        this.id = null;
     }
 
 
@@ -32,23 +29,22 @@ public class Book {
         this.isbn = isbn;
     }
 
-    @Column
     private String genre;
-    @Column
+
     private String author;
-    @Column
+
     private String image;
-    @Column
+
     private String title;
-    @Column
+
     private String subtitle;
-    @Column
+
     private String publisher;
-    @Column
+
     private String year;
-    @Column
+
     private Integer pages;
-    @Column
+
     private String isbn;
 
     public String getAuthor() {
