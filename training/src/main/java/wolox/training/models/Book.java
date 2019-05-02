@@ -1,13 +1,12 @@
 package wolox.training.models;
 
 import javax.persistence.Column;
-import javax.persistence.Embeddable;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
 
-@Entity @Embeddable
+@Entity
 public class Book {
 
     @Id
@@ -22,38 +21,40 @@ public class Book {
 
     public Book(String author, String image, String title, String subtitle, String publisher,
         String year, Integer pages, String isbn) {
-        this.author = author;
-        this.image = image;
-        this.title = title;
-        this.subtitle = subtitle;
-        this.publisher = publisher;
-        this.year = year;
-        this.pages = pages;
-        this.isbn = isbn;
+        setId(id);
+        setAuthor(author);
+        setImage(image);
+        setTitle(title);
+        setSubtitle(subtitle);
+        setPublisher(publisher);
+        setYear(year);
+        setPages(pages);
+        setIsbn(isbn);
     }
 
-    @Column(nullable = false)
     private String genre;
-    @Column(nullable = false)
+
     private String author;
-    @Column(nullable = false)
+
     private String image;
-    @Column(nullable = false)
+
     private String title;
-    @Column(nullable = false)
+
     private String subtitle;
-    @Column(nullable = false)
+
     private String publisher;
-    @Column(nullable = false)
+
     private String year;
-    @Column(nullable = false)
+
     private Integer pages;
-    @Column(nullable = false)
+
     private String isbn;
 
     public Long getId() { return id; }
 
-    public void setId(Long id){this.id = id;}
+    private void setId(Long id) {
+        this.id = id;
+    }
 
     public String getAuthor() {
         return author;
