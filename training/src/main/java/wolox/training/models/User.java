@@ -15,7 +15,7 @@ import javax.validation.constraints.NotNull;
 import wolox.training.exceptions.BookAlreadyOwnedException;
 import wolox.training.exceptions.BookNotFoundException;
 
-@Entity
+@Entity(name="users")
 public class User {
 
     @Id
