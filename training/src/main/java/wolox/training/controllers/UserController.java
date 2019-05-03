@@ -22,18 +22,6 @@ import wolox.training.repositories.UserRepository;
 @Controller
 public class UserController {
 
-    /*
-    En esta card vamos a crear un nuevo controller destinado a las operaciones de un User.
-    Quedará similar al BookController que ya debieras tener funcionando antes de comenzar con esta card.
-
-    Tené en cuenta que las colecciones deben ser manejadas aparte.
-    Por lo tanto, deberás agregar, además de las 4 operaciones CRUD, 1 operación de agregado de libro a la colección,
-    y otro de borrado de libro a la colección, que utilizarán los métodos del modelo destinados a este fin.
-
-    No te olvides de agregar el repositorio a tu controller usando la annotation @Autowired
-
-     */
-
     @Autowired
     UserRepository userRepository;
 
