@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import org.postgresql.shaded.com.ongres.scram.common.util.Preconditions;
 
 @Entity
 public class Book {
@@ -53,6 +54,7 @@ public class Book {
     public Long getId() { return id; }
 
     private void setId(Long id) {
+        Preconditions.checkArgument(id!=null && id >0, "The id must be greater than 0");
         this.id = id;
     }
 
@@ -62,6 +64,7 @@ public class Book {
 
 
     public void setAuthor(String author) {
+        Preconditions.checkNotNull(author, "The author cannot be null");
         this.author = author;
     }
 
@@ -70,6 +73,7 @@ public class Book {
     }
 
     public void setImage(String image) {
+        Preconditions.checkNotNull(image, "The image cannot be null");
         this.image = image;
     }
 
@@ -78,6 +82,7 @@ public class Book {
     }
 
     public void setTitle(String title) {
+        Preconditions.checkNotNull(title, "The title cannot be null");
         this.title = title;
     }
 
@@ -86,6 +91,7 @@ public class Book {
     }
 
     public void setSubtitle(String subtitle) {
+        Preconditions.checkNotNull(subtitle, "The subtitle cannot be null");
         this.subtitle = subtitle;
     }
 
@@ -94,6 +100,7 @@ public class Book {
     }
 
     public void setPublisher(String publisher) {
+        Preconditions.checkNotNull(publisher, "The publisher cannot be null");
         this.publisher = publisher;
     }
 
@@ -102,6 +109,7 @@ public class Book {
     }
 
     public void setYear(String year) {
+        Preconditions.checkArgument(year!=null && Integer.parseInt(year) > 0, "Please enter a valid year");
         this.year = year;
     }
 
@@ -110,6 +118,7 @@ public class Book {
     }
 
     public void setPages(Integer pages) {
+        Preconditions.checkArgument(pages!=null && pages > 1, "The book must have at least 1 page");
         this.pages = pages;
     }
 
@@ -118,6 +127,7 @@ public class Book {
     }
 
     public void setIsbn(String isbn) {
+        Preconditions.checkNotNull(title, "The title cannot be null");
         this.isbn = isbn;
     }
 
@@ -126,6 +136,7 @@ public class Book {
     }
 
     public void setGenre(String genre) {
+        Preconditions.checkNotNull(genre, "The genre cannot be null");
         this.genre = genre;
     }
 

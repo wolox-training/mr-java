@@ -12,6 +12,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.validation.constraints.NotNull;
+import org.postgresql.shaded.com.ongres.scram.common.util.Preconditions;
 import wolox.training.exceptions.BookAlreadyOwnedException;
 import wolox.training.exceptions.BookNotFoundException;
 
@@ -47,6 +48,8 @@ public class User {
     }
 
     public void setId(Long id) {
+
+        Preconditions.checkArgument(id!=null && id >0, "The id must be greater than 0");
         this.id = id;
     }
 
@@ -55,6 +58,8 @@ public class User {
     }
 
     public void setUsername(String username) {
+
+        Preconditions.checkNotNull(username, "The username cannot be null");
         this.username = username;
     }
 
@@ -62,8 +67,10 @@ public class User {
         return name;
     }
 
-    public void setName(String username) {
-        this.name = username;
+    public void setName(String name) {
+
+        Preconditions.checkNotNull(name, "The name cannot be null");
+        this.name = name;
     }
 
     public LocalDate getBirthdate() {
@@ -71,6 +78,8 @@ public class User {
     }
 
     public void setBirthdate(LocalDate birthdate) {
+
+        Preconditions.checkArgument(birthdate!=null && birthdate.isBefore(LocalDate.now()), "The birthdate cannot be null");
         this.birthdate = birthdate;
     }
 
@@ -79,18 +88,26 @@ public class User {
     }
 
     public void setBooks(List<Book> books) {
+
+        Preconditions.checkNotNull(books, "The books' list cannot be empty");
         this.books = books;
     }
 
     public void addBook(Book book) throws BookAlreadyOwnedException {
 
+        Preconditions.checkNotNull(book, "The book cannot be empty");
+
         if(books.contains(book)){
             throw new BookAlreadyOwnedException("This user already has the book");
         }
+
         books.add(book);
     }
 
     public void removeBook(Book book) throws BookNotFoundException{
+
+        Preconditions.checkNotNull(book, "The book cannot be empty");
+
         if(!books.contains(book)){
             throw new BookNotFoundException("This user does not own the book you are trying to delete");
         }
@@ -98,9 +115,5 @@ public class User {
         books.remove(book);
 
     }
-
-
-
-
 
 }
