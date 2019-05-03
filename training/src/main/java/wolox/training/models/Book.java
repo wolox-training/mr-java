@@ -16,9 +16,8 @@ public class Book {
     }
 
 
-    public Book(Long id, String author, String image, String title, String subtitle, String publisher,
+    public Book(String author, String image, String title, String subtitle, String publisher,
         String year, Integer pages, String isbn) {
-        setId(id);
         setAuthor(author);
         setImage(image);
         setTitle(title);
@@ -47,9 +46,6 @@ public class Book {
 
     private String isbn;
 
-    private void setId(Long id) {
-        this.id = id;
-    }
 
     public String getAuthor() {
         return author;
