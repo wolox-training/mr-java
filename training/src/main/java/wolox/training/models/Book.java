@@ -13,7 +13,7 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", updatable = false, nullable = false)
     private Long id;
-    
+
     private String genre;
 
     private String author;
@@ -47,7 +47,6 @@ public class Book {
         setPages(pages);
         setIsbn(isbn);
     }
-
     
     public Long getId() { return id; }
 
