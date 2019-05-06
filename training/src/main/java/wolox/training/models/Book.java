@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.validation.constraints.NotNull;
 import org.postgresql.shaded.com.ongres.scram.common.util.Preconditions;
 
 @Entity
@@ -22,7 +23,6 @@ public class Book {
 
     public Book(String author, String image, String title, String subtitle, String publisher,
         String year, Integer pages, String isbn) {
-        setId(id);
         setAuthor(author);
         setImage(image);
         setTitle(title);
@@ -34,29 +34,24 @@ public class Book {
     }
 
     private String genre;
-
+    @NotNull
     private String author;
-
+    @NotNull
     private String image;
-
+    @NotNull
     private String title;
-
+    @NotNull
     private String subtitle;
-
+    @NotNull
     private String publisher;
-
+    @NotNull
     private String year;
-
+    @NotNull
     private Integer pages;
-
+    @NotNull
     private String isbn;
 
     public Long getId() { return id; }
-
-    private void setId(Long id) {
-        Preconditions.checkArgument(id!=null && id >0, "The id must be greater than 0");
-        this.id = id;
-    }
 
     public String getAuthor() {
         return author;

@@ -46,12 +46,6 @@ public class User {
         return id;
     }
 
-    public void setId(Long id) {
-
-        Preconditions.checkArgument(id!=null && id >0, "The id must be greater than 0");
-        this.id = id;
-    }
-
     public String getUsername() {
         return username;
     }
