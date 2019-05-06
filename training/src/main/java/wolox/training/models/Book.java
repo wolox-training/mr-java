@@ -118,7 +118,7 @@ public class Book {
     }
 
     public void setPages(Integer pages) {
-        Preconditions.checkArgument(pages!=null && pages > 1, "The book must have at least 1 page");
+        Preconditions.checkArgument(pages!=null && pages > 0, "The book must have at least 1 page");
         this.pages = pages;
     }
 
@@ -136,7 +136,6 @@ public class Book {
     }
 
     public void setGenre(String genre) {
-        Preconditions.checkNotNull(genre, "The genre cannot be null");
         this.genre = genre;
     }
 
