@@ -110,4 +110,9 @@ public class User {
 
     }
 
+    public Boolean anyRequiredAttributeNull()
+    {
+        return (username==null || name==null || birthdate == null);
+    }
+
 }

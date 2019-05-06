@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import wolox.training.exceptions.BookAlreadyOwnedException;
 import wolox.training.exceptions.BookNotFoundException;
+import wolox.training.exceptions.NullAttributesException;
 import wolox.training.exceptions.UserIdMismatchException;
 import wolox.training.exceptions.UserNotFoundException;
 import wolox.training.models.Book;
@@ -49,18 +50,26 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public User update(@PathVariable Long id, @RequestBody User user) throws UserNotFoundException, UserIdMismatchException {
+    public User update(@PathVariable Long id, @RequestBody User user) throws UserNotFoundException, UserIdMismatchException, NullAttributesException {
         if(id != user.getId()){
             throw  new UserIdMismatchException();
         }
 
         userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+
+        if(user.anyRequiredAttributeNull()){
+            throw new NullAttributesException();
+        }
+
         return userRepository.save(user);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public User create(@RequestBody User user){
+    public User create(@RequestBody User user) throws NullAttributesException {
+        if(user.anyRequiredAttributeNull()){
+            throw new NullAttributesException();
+        }
         return userRepository.save(user);
     }
 

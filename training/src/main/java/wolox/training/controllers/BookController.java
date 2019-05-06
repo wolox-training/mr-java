@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import wolox.training.exceptions.BookIdMismatchException;
 import wolox.training.exceptions.BookNotFoundException;
+import wolox.training.exceptions.NullArgumentsException;
+import wolox.training.exceptions.NullAttributesException;
 import wolox.training.models.Book;
 import wolox.training.repositories.BookRepository;
 
@@ -45,7 +47,10 @@ public class BookController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Book create(@RequestBody Book book) {
+    public Book create(@RequestBody Book book) throws NullAttributesException {
+        if(book.anyRequiredAttributeNull()){
+            throw new NullAttributesException();
+        }
         return bookRepository.save(book);
     }
 
@@ -56,11 +61,15 @@ public class BookController {
     }
 
     @PutMapping("/{id}")
-    public Book updateBook(@RequestBody Book book, @PathVariable Long id) throws BookNotFoundException, BookIdMismatchException {
+    public Book updateBook(@RequestBody Book book, @PathVariable Long id) throws BookNotFoundException, BookIdMismatchException, NullAttributesException {
         if (book.getId() != id) {
             throw new BookIdMismatchException();
         }
         bookRepository.findById(id).orElseThrow(BookNotFoundException::new);
+
+        if(book.anyRequiredAttributeNull()){
+            throw new NullAttributesException();
+        }
 
         return bookRepository.save(book);
     }

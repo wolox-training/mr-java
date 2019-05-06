@@ -131,8 +131,12 @@ public class Book {
     }
 
     public void setGenre(String genre) {
-        Preconditions.checkNotNull(genre, "The genre cannot be null");
         this.genre = genre;
+    }
+
+    public Boolean anyRequiredAttributeNull()
+    {
+        return (author==null || image==null || title ==null || subtitle==null || publisher==null || year==null || pages==null || isbn==null);
     }
 
 }
