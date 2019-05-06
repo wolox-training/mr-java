@@ -1,5 +1,7 @@
 package wolox.training.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,10 +35,7 @@ public class User {
     private LocalDate birthdate;
 
     @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "book_user",
-        joinColumns = @JoinColumn(name = "book_id", referencedColumnName = "id"),
-        inverseJoinColumns = @JoinColumn(name = "user_id",
-            referencedColumnName = "id"))
+    @JsonProperty("books")
     private List<Book> books = new ArrayList<>();
 
     public User(){
@@ -83,6 +82,7 @@ public class User {
         this.birthdate = birthdate;
     }
 
+    @JsonIgnore
     public List<Book> getBooks() {
         return (List<Book>) Collections.unmodifiableCollection(books);
     }
