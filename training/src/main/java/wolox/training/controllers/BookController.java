@@ -21,8 +21,8 @@ import wolox.training.exceptions.NullAttributesException;
 import wolox.training.models.Book;
 import wolox.training.repositories.BookRepository;
 
-@RequestMapping("/api/books")
 @RestController
+@RequestMapping("/api/books")
 public class BookController {
 
     @Autowired

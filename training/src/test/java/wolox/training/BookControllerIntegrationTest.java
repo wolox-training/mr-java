@@ -1,13 +1,14 @@
 package wolox.training;
 
-import static org.assertj.core.internal.bytebuddy.matcher.ElementMatchers.is;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +17,10 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+import static org.hamcrest.CoreMatchers.is;
 import wolox.training.controllers.BookController;
 import wolox.training.models.Book;
-
+import wolox.training.repositories.BookRepository;
 
 
 @RunWith(SpringRunner.class)
@@ -29,24 +31,52 @@ public class BookControllerIntegrationTest {
     private MockMvc mvc;
 
     @MockBean
-    private BookController service;
+    private BookRepository bookRepository;
 
     @Test
-    public void givenId_whenGetBook_thenReturnJsonArray() throws Exception {
+    public void givenId_whenGetBook_thenReturnJson() throws Exception {
         Book book = new Book("J. K.", "as", "as", "as", "as", "1999", 25, "142536");
+        Long bookId = Integer.toUnsignedLong(1);
 
-        given(service.findOne(book.getId())).willReturn(book);
+        given(bookRepository.findById(bookId)).willReturn(java.util.Optional.of(book));
 
-        mvc.perform(get("/api/books/"+book.getId())
+        mvc.perform(get("/api/books/"+bookId)
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$", hasSize(1)));
-            //.andExpect(jsonPath("$[0].id", is(book.getId())));
+            .andExpect(jsonPath("$.title", is(book.getTitle())));
+    }
 
-        /*List<Book> books = new ArrayList<Book>();
-        books.add(book);
+    @Test
+    public void whenGetBooks_thenReturnJsonArray() throws Exception{
+        Book book1 = new Book("J. K.", "as", "as", "as", "as", "1999", 25, "142536");
+        Book book2 = new Book("Yop", "as", "My life", "as", "as", "1995", 25, "142536");
 
-        given(service.findAll()).willReturn(books);*/
+
+        List<Book> books = new ArrayList<Book>();
+        books.add(book1);
+        books.add(book2);
+
+        given(bookRepository.findAll()).willReturn(books);
+
+        mvc.perform(get("/api/books/")
+        .contentType(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(2)))
+        .andExpect(jsonPath("$[0].title", is(book1.getTitle())))
+        .andExpect(jsonPath("$[1].title", is(book2.getTitle())));
+    }
+
+    @Test
+    public void givenId_whenUpdateBook_thenReturnJson() throws Exception{
+        Book book = new Book("J. K.", "as", "as", "as", "as", "1999", 25, "142536");
+        Long bookId = Integer.toUnsignedLong(1);
+
+        given(bookRepository.save(book)).willReturn(book);
+
+        mvc.perform(put("/api/books/"+bookId)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.title", is(book.getTitle())));
     }
 
 
