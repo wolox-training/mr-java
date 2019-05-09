@@ -1,5 +1,6 @@
 package wolox.training.models;
 
+import java.util.Objects;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -52,6 +53,11 @@ public class Book {
     private String isbn;
 
     public Long getId() { return id; }
+
+    public void setId(Long id){
+        Preconditions.checkArgument(id!=null && id > Integer.toUnsignedLong(0), "The id should be greater than cero");
+        this.id = id;
+    }
 
     public String getAuthor() {
         return author;
@@ -139,5 +145,31 @@ public class Book {
         return (author==null || image==null || title ==null || subtitle==null || publisher==null || year==null || pages==null || isbn==null);
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Book book = (Book) o;
+        return Objects.equals(id, book.id) &&
+            Objects.equals(genre, book.genre) &&
+            Objects.equals(author, book.author) &&
+            Objects.equals(image, book.image) &&
+            Objects.equals(title, book.title) &&
+            Objects.equals(subtitle, book.subtitle) &&
+            Objects.equals(publisher, book.publisher) &&
+            Objects.equals(year, book.year) &&
+            Objects.equals(pages, book.pages) &&
+            Objects.equals(isbn, book.isbn);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects
+            .hash(id, genre, author, image, title, subtitle, publisher, year, pages, isbn);
+    }
 }
 
