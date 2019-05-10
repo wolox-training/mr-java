@@ -1,6 +1,7 @@
 package wolox.training.models;
 
 import java.util.Objects;
+import java.util.Optional;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -22,7 +23,7 @@ public class Book {
     }
 
     public Book(String author, String image, String title, String subtitle, String publisher,
-        String year, Integer pages, String isbn) {
+        String year, Integer pages, String isbn,String genre) {
         setAuthor(author);
         setImage(image);
         setTitle(title);
@@ -31,6 +32,7 @@ public class Book {
         setYear(year);
         setPages(pages);
         setIsbn(isbn);
+        setGenre(genre);
     }
 
     private String genre;
