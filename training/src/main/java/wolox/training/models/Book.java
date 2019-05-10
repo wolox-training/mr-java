@@ -21,7 +21,6 @@ public class Book {
 
     }
 
-
     public Book(String author, String image, String title, String subtitle, String publisher,
         String year, Integer pages, String isbn) {
         setAuthor(author);
@@ -53,11 +52,6 @@ public class Book {
     private String isbn;
 
     public Long getId() { return id; }
-
-    public void setId(Long id){
-        Preconditions.checkArgument(id!=null && id > Integer.toUnsignedLong(0), "The id should be greater than cero");
-        this.id = id;
-    }
 
     public String getAuthor() {
         return author;

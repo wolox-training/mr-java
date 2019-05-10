@@ -2,9 +2,9 @@ package wolox.training;
 
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -13,7 +13,6 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import java.util.ArrayList;
 import java.util.List;
-import org.json.JSONObject;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +22,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.hamcrest.CoreMatchers.is;
+import java.lang.reflect.*;
 
 import wolox.training.controllers.BookController;
 import wolox.training.models.Book;
@@ -39,14 +39,14 @@ public class BookControllerIntegrationTest {
     @MockBean
     private BookRepository bookRepository;
 
+
     @Test
     public void givenId_whenGetBook_thenReturnJson() throws Exception {
-        Book book = new Book("J. K.", "as", "as", "as", "as", "1999", 25, "142536");
-        Long bookId = Integer.toUnsignedLong(1);
+        Book book = createDefaultBook(1);
 
-        given(bookRepository.findById(bookId)).willReturn(java.util.Optional.of(book));
+        given(bookRepository.findById(book.getId())).willReturn(java.util.Optional.of(book));
 
-        mvc.perform(get("/api/books/"+bookId)
+        mvc.perform(get("/api/books/{id}",book.getId())
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.title", is(book.getTitle())));
@@ -54,9 +54,8 @@ public class BookControllerIntegrationTest {
 
     @Test
     public void whenGetBooks_thenReturnJsonArray() throws Exception{
-        Book book1 = new Book("J. K.", "as", "as", "as", "as", "1999", 25, "142536");
-        Book book2 = new Book("Yop", "as", "My life", "as", "as", "1995", 25, "142536");
-
+        Book book1 = createDefaultBook(1);
+        Book book2 = createDefaultBook(2);
 
         List<Book> books = new ArrayList<Book>();
         books.add(book1);
@@ -74,8 +73,7 @@ public class BookControllerIntegrationTest {
 
     @Test
     public void givenId_whenUpdateBook_thenReturnJson() throws Exception{
-        Book book = new Book("J. K.", "as", "as", "as", "as", "1999", 25, "142536");
-        book.setId(Integer.toUnsignedLong(1));
+        Book book = createDefaultBook(1);
 
         given(bookRepository.findById(book.getId())).willReturn(java.util.Optional.of(book));
         given(bookRepository.save(book)).willReturn(book);
@@ -86,19 +84,32 @@ public class BookControllerIntegrationTest {
         ObjectWriter ow = mapper.writer().withDefaultPrettyPrinter();
         String stringBook=ow.writeValueAsString(book);
 
-
-
-        /*JSONObject jsonBook = new JSONObject(stringBook);
-        jsonBook.remove("id");
-        jsonBook.put("id", bookId);
-
-        stringBook = jsonBook.toString();*/
-
-        mvc.perform(put("/api/books/"+book.getId())
+        mvc.perform(put("/api/books/{id}",book.getId())
             .contentType(MediaType.APPLICATION_JSON)
             .content(stringBook))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.title", is(book.getTitle())));
+    }
+
+    @Test
+    public void givenId_deleteBook() throws Exception{
+        Book book = createDefaultBook(1);
+
+        given(bookRepository.findById(book.getId())).willReturn(java.util.Optional.of(book));
+
+        mvc.perform(delete("/api/books/{id}",book.getId()))
+            .andExpect(status().isOk());
+
+    }
+
+    private Book createDefaultBook(Integer id) throws NoSuchFieldException, IllegalAccessException{
+        Book book = new Book("J. K.", "as", "as", "as", "as", "1999", 25, "142536");
+
+        Field fieldId = book.getClass().getDeclaredField("id");
+        fieldId.setAccessible(true);
+        fieldId.set(book, new Long(id));
+
+        return book;
     }
 
 }
