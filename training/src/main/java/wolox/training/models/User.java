@@ -82,7 +82,7 @@ public class User {
         books.add(book);
     }
 
-    public void deleteBook(Book book) throws BookNotFoundException{
+    public void removeBook(Book book) throws BookNotFoundException{
         if(!books.contains(book)){
             throw new BookNotFoundException("This user does not own the book you are trying to delete");
         }
