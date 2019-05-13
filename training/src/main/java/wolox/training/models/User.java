@@ -33,10 +33,6 @@ public class User {
     private LocalDate birthdate;
 
     @ManyToMany(cascade = CascadeType.ALL)
-    @JoinTable(name = "book_user",
-        joinColumns = @JoinColumn(name = "book_id", referencedColumnName = "id"),
-        inverseJoinColumns = @JoinColumn(name = "user_id",
-            referencedColumnName = "id"))
     private List<Book> books = new ArrayList<>();
 
     public User(){
@@ -45,12 +41,6 @@ public class User {
 
     public Long getId() {
         return id;
-    }
-
-    public void setId(Long id) {
-
-        Preconditions.checkArgument(id!=null && id >0, "The id must be greater than 0");
-        this.id = id;
     }
 
     public String getUsername() {
@@ -68,7 +58,6 @@ public class User {
     }
 
     public void setName(String name) {
-
         Preconditions.checkNotNull(name, "The name cannot be null");
         this.name = name;
     }

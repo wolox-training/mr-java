@@ -15,24 +15,6 @@ public class Book {
     @Column(name = "id", updatable = false, nullable = false)
     private Long id;
 
-    public Book() {
-
-    }
-
-
-    public Book(String author, String image, String title, String subtitle, String publisher,
-        String year, Integer pages, String isbn) {
-        setId(id);
-        setAuthor(author);
-        setImage(image);
-        setTitle(title);
-        setSubtitle(subtitle);
-        setPublisher(publisher);
-        setYear(year);
-        setPages(pages);
-        setIsbn(isbn);
-    }
-
     private String genre;
 
     private String author;
@@ -51,17 +33,26 @@ public class Book {
 
     private String isbn;
 
-    public Long getId() { return id; }
+    public Book() {
 
-    private void setId(Long id) {
-        Preconditions.checkArgument(id!=null && id >0, "The id must be greater than 0");
-        this.id = id;
     }
+    public Book(String author, String image, String title, String subtitle, String publisher,
+        String year, Integer pages, String isbn) {
+        setAuthor(author);
+        setImage(image);
+        setTitle(title);
+        setSubtitle(subtitle);
+        setPublisher(publisher);
+        setYear(year);
+        setPages(pages);
+        setIsbn(isbn);
+    }
+    
+    public Long getId() { return id; }
 
     public String getAuthor() {
         return author;
     }
-
 
     public void setAuthor(String author) {
         Preconditions.checkNotNull(author, "The author cannot be null");
