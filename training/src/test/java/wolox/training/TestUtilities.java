@@ -25,12 +25,13 @@ public abstract class TestUtilities {
         return book;
     }
 
-    public static String mapToJsonString(Book book) throws JsonProcessingException {
+    public static String mapToJsonString(Object obj) throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
 
         mapper.configure(SerializationFeature.WRAP_ROOT_VALUE, false);
         ObjectWriter ow = mapper.writer().withDefaultPrettyPrinter();
-        return ow.writeValueAsString(book);
+
+        return ow.writeValueAsString(obj);
     }
 
     public static User createDefaultUser(Long id, String name)

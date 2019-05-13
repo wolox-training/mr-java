@@ -64,7 +64,7 @@ public class UserController {
         return userRepository.save(user);
     }
 
-    @PostMapping
+    @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
     public User create(@RequestBody User user) throws NullAttributesException {
         if(user.anyRequiredAttributeNull()){
