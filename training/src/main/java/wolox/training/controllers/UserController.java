@@ -51,7 +51,7 @@ public class UserController {
 
     @PutMapping("/{id}")
     public User update(@PathVariable Long id, @RequestBody User user) throws UserNotFoundException, UserIdMismatchException, NullAttributesException {
-        if(id != user.getId()){
+        if(!id.equals(user.getId())){
             throw  new UserIdMismatchException();
         }
 
@@ -63,8 +63,8 @@ public class UserController {
 
         return userRepository.save(user);
     }
-
-    @PostMapping
+  
+    @PostMapping(path="/")
     @ResponseStatus(HttpStatus.CREATED)
     public User create(@RequestBody User user) throws NullAttributesException {
         if(user.anyRequiredAttributeNull()){
