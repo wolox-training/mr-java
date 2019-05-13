@@ -5,6 +5,7 @@ import static org.mockito.BDDMockito.given;
 import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -45,6 +46,7 @@ public class BookControllerIntegrationTest {
     private BookRepository bookRepository;
 
     String bookNotFoundReason;
+    String nullAttributtesReason;
     Book book;
     Book otherBook;
     Long nonExistingId;
@@ -65,8 +67,8 @@ public class BookControllerIntegrationTest {
         given(bookRepository.findById(nonExistingId)).willReturn(Optional.empty());
 
         bookNotFoundReason = "Book Not Found";
+        nullAttributtesReason = "Received Null Attributes";
     }
-
 
     //region find one book tests
 
@@ -79,7 +81,7 @@ public class BookControllerIntegrationTest {
             .andExpect(jsonPath("$.title", is(book.getTitle())));
     }
 
-    @Test//(expected = BookNotFoundException.class)
+    @Test
     public void givenNonExistingId_whenGetBook_thenReturnNotFound() throws Exception {
 
         mvc.perform(get("/api/books/{id}",nonExistingId)
@@ -136,7 +138,6 @@ public class BookControllerIntegrationTest {
         Book changedBook = book;
         changedBook.setGenre("null");
 
-        given(bookRepository.findById(book.getId())).willReturn(java.util.Optional.of(book));
         given(bookRepository.save(changedBook)).willReturn(changedBook);
 
         String stringBook = mapToJsonString(changedBook);
@@ -219,6 +220,71 @@ public class BookControllerIntegrationTest {
             .andExpect(status().reason(bookNotFoundReason));
     }
     //endregion
+
+    //region create book tests
+    @Test
+    public void givenBook_whenCreateBook_thenReturnJson() throws Exception {
+        String stringBook = mapToJsonString(book);
+
+        given(bookRepository.save(book)).willReturn(book);
+
+        mvc.perform(post("/api/books")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(stringBook))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.title", is(book.getTitle())))
+            .andExpect(jsonPath("$.subtitle", is(book.getSubtitle())))
+            .andExpect(jsonPath("$.author", is(book.getAuthor())))
+            .andExpect(jsonPath("$.genre", is(book.getGenre())))
+            .andExpect(jsonPath("$.publisher", is(book.getPublisher())))
+            .andExpect(jsonPath("$.year", is(book.getYear())))
+            .andExpect(jsonPath("$.pages", is(book.getPages())))
+            .andExpect(jsonPath("$.isbn", is(book.getIsbn())))
+            .andExpect(jsonPath("$.image", is(book.getImage())));
+    }
+
+    @Test
+    public void givenBookWithNullGender_whenCreateBook_thenReturnJson() throws Exception {
+        Book newBook = book;
+        newBook.setGenre(null);
+
+        String stringBook = mapToJsonString(newBook);
+
+        given(bookRepository.save(newBook)).willReturn(newBook);
+
+        mvc.perform(post("/api/books")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(stringBook))
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$.title", is(newBook.getTitle())))
+            .andExpect(jsonPath("$.subtitle", is(newBook.getSubtitle())))
+            .andExpect(jsonPath("$.author", is(newBook.getAuthor())))
+            .andExpect(jsonPath("$.genre", is(newBook.getGenre())))
+            .andExpect(jsonPath("$.publisher", is(newBook.getPublisher())))
+            .andExpect(jsonPath("$.year", is(newBook.getYear())))
+            .andExpect(jsonPath("$.pages", is(newBook.getPages())))
+            .andExpect(jsonPath("$.isbn", is(newBook.getIsbn())))
+            .andExpect(jsonPath("$.image", is(newBook.getImage())));;
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void givenBookWithEmptyRequiredValues_whenCreateBook_thenThrowsNullAttributeException() throws Exception {
+        Book newBook = book;
+        newBook.setTitle(null);
+
+        String stringBook = mapToJsonString(newBook);
+
+        given(bookRepository.save(newBook)).willReturn(newBook);
+
+        mvc.perform(post("/api/books")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(stringBook))
+            .andExpect(status().isBadRequest())
+            .andExpect(status().reason(nullAttributtesReason));
+    }
+
+    //endregion
+
 
     private Book createDefaultBook(Long id) throws NoSuchFieldException, IllegalAccessException{
         Book book = new Book("J. K.", "as", "as", "as", "as", "1999", 25, "142536", "Novel");
