@@ -1,9 +1,10 @@
-package wolox.training;
+package wolox.training.Controllers;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static wolox.training.TestUtilities.createDefaultUser;
@@ -55,6 +56,7 @@ public class UserControllerIntegrationTest {
     private String baseUrl;
     private String userNotFoundExReason;
     private String nullAttributesExReason;
+    private String idMismatchExReason;
 
     @Before
     public void runBefore() throws NoSuchFieldException, IllegalAccessException {
@@ -63,6 +65,7 @@ public class UserControllerIntegrationTest {
 
         userNotFoundExReason = "User Not Found";
         nullAttributesExReason = "Received Null Attributes";
+        idMismatchExReason = "User Id Mismatch";
 
         user = createDefaultUser(1L, "Ana");
         otherUser = createDefaultUser(2L, "Mariana");
@@ -98,7 +101,10 @@ public class UserControllerIntegrationTest {
             .andExpect(jsonPath("$.name", is(user.getName())))
             .andExpect(jsonPath("$.username", is(user.getUsername())))
             .andExpect(jsonPath("$.birthdate", is(user.getBirthdate().toString())))
-            .andExpect(jsonPath("$.books", hasSize(user.getBooks().size())));
+            .andExpect(jsonPath("$.books", hasSize(user.getBooks().size())))
+            .andExpect(jsonPath("$.books[0].title", is(user.getBooks().get(0).getTitle())))
+            .andExpect(jsonPath("$.books[1].title", is(user.getBooks().get(1).getTitle())))
+            .andExpect(jsonPath("$.books[2].title", is(user.getBooks().get(2).getTitle())));
     }
 
     @Test
@@ -124,7 +130,10 @@ public class UserControllerIntegrationTest {
             .andExpect(jsonPath("$.name", is(user.getName())))
             .andExpect(jsonPath("$.username", is(user.getUsername())))
             .andExpect(jsonPath("$.birthdate", is(user.getBirthdate().toString())))
-            .andExpect(jsonPath("$.books", hasSize(user.getBooks().size())));
+            .andExpect(jsonPath("$.books", hasSize(user.getBooks().size())))
+            .andExpect(jsonPath("$.books[0].title", is(user.getBooks().get(0).getTitle())))
+            .andExpect(jsonPath("$.books[1].title", is(user.getBooks().get(1).getTitle())))
+            .andExpect(jsonPath("$.books[2].title", is(user.getBooks().get(2).getTitle())));
     }
 
     @Test (expected = IllegalArgumentException.class)
@@ -133,8 +142,6 @@ public class UserControllerIntegrationTest {
         User newUser = user;
         newUser.setName(null);
         String userString = mapToJsonString(newUser);
-
-        given(userRepository.save(newUser)).willReturn(newUser);
 
         mvc.perform(post(baseUrl)
             .contentType(MediaType.APPLICATION_JSON)
@@ -145,6 +152,64 @@ public class UserControllerIntegrationTest {
     //endregion
 
     //region update user
+    @Test
+    public void givenUser_whenUpdateUser_thenReturnJson() throws Exception {
+        User changedUser = user;
+        changedUser.setUsername("newbie");
+
+        String stringChangedUser = mapToJsonString(changedUser);
+
+        given(userRepository.save(changedUser)).willReturn(changedUser);
+
+        mvc.perform(put(baseUrl+"{id}", user.getId())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(stringChangedUser))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.name", is(changedUser.getName())))
+            .andExpect(jsonPath("$.username", is(changedUser.getUsername())))
+            .andExpect(jsonPath("$.birthdate",  is(changedUser.getBirthdate().toString())))
+            .andExpect(jsonPath("$.books", hasSize(3)));
+    }
+
+    @Test
+    public void givenWrongId_whenUpdateUser_thenThrowIdMismatch() throws Exception {
+        User changedUser = createDefaultUser(4L, "Monica");
+
+        String stringChangedUser = mapToJsonString(changedUser);
+
+        mvc.perform(put(baseUrl+"{id}", user.getId())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(stringChangedUser))
+            .andExpect(status().isConflict())
+            .andExpect(status().reason(idMismatchExReason));
+    }
+
+    @Test
+    public void givenNonExistingId_whenUpdateUser_thenThrowNotFound() throws Exception {
+        User changedUser = createDefaultUser(nonExistingId, "Marta");
+
+        String stringChangedUser = mapToJsonString(changedUser);
+
+        mvc.perform(put(baseUrl+"{id}", changedUser.getId())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(stringChangedUser))
+            .andExpect(status().isNotFound())
+            .andExpect(status().reason(userNotFoundExReason));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void givenNullAttribute_whenUpdateUser_thenThrowNullAttribute() throws Exception {
+        User changedUser = user;
+        changedUser.setName(null);
+
+        String stringChangedBook = mapToJsonString(changedUser);
+
+        mvc.perform(put(baseUrl+"{id}", changedUser.getId())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(stringChangedBook))
+            .andExpect(status().isBadRequest())
+            .andExpect(status().reason(nullAttributesExReason));
+    }
     //endregion
 
     //region delete user

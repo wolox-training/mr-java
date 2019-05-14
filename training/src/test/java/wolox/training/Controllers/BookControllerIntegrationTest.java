@@ -1,4 +1,4 @@
-package wolox.training;
+package wolox.training.Controllers;
 
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.mockito.BDDMockito.given;
@@ -161,8 +161,6 @@ public class BookControllerIntegrationTest {
 
         String stringNewBook = mapToJsonString(newBook);
 
-        given(bookRepository.save(newBook)).willReturn(newBook);
-
         mvc.perform(post(baseUrl)
             .contentType(MediaType.APPLICATION_JSON)
             .content(stringNewBook))
@@ -226,9 +224,6 @@ public class BookControllerIntegrationTest {
     public void givenNonExistingId_whenUpdateBook_thenThrowBookNotFound() throws Exception{
         Book changedBook = createDefaultBook(nonExistingId, "Harry Potter and the Philosopher's Stone");
 
-        given(bookRepository.findById(nonExistingId)).willReturn(Optional.empty());
-        given(bookRepository.save(changedBook)).willReturn(changedBook);
-
         String stringChangedBook = mapToJsonString(changedBook);
 
         mvc.perform(put(baseUrl+"{id}",nonExistingId)
@@ -241,8 +236,6 @@ public class BookControllerIntegrationTest {
     @Test
     public void givenWrongId_whenUpdateBook_thenThrowIdMismatch() throws Exception{
         Book changedBook = createDefaultBook(2L, "Harry Potter and the Philosopher's Stone");
-
-        given(bookRepository.save(changedBook)).willReturn(changedBook);
 
         String stringChangedBook = mapToJsonString(changedBook);
 
@@ -258,8 +251,6 @@ public class BookControllerIntegrationTest {
         Book changedBook = book;
         changedBook.setTitle(null);
 
-        given(bookRepository.save(changedBook)).willReturn(changedBook);
-
         String stringChangedBook = mapToJsonString(changedBook);
 
         mvc.perform(put(baseUrl+"{id}",book.getId())
@@ -272,14 +263,13 @@ public class BookControllerIntegrationTest {
 
     //region delete book tests
     @Test
-    public void givenId_deleteBook() throws Exception{
+    public void givenId_whenDeleteBook() throws Exception{
         mvc.perform(delete(baseUrl+"{id}",book.getId()))
             .andExpect(status().isOk());
-
     }
 
     @Test
-    public void givenNonExistingId_deleteBook_thenThrowNotFound() throws Exception{
+    public void givenNonExistingId_whenDeleteBook_thenThrowNotFound() throws Exception{
         mvc.perform(delete(baseUrl+"{id}", nonExistingId))
             .andExpect(status().isNotFound())
             .andExpect(status().reason(bookNotFoundExReason));
