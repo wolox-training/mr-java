@@ -9,10 +9,15 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static wolox.training.TestUtilities.createDefaultUser;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import org.apache.tomcat.jni.Local;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
