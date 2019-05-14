@@ -2,6 +2,7 @@ package wolox.training.Controllers;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
@@ -213,6 +214,18 @@ public class UserControllerIntegrationTest {
     //endregion
 
     //region delete user
+    @Test
+    public void givenId_whenDeleteUser() throws Exception {
+        mvc.perform(delete(baseUrl+"{id}",user.getId()))
+            .andExpect(status().isOk());
+    }
+
+    @Test
+    public void givenNonExistingId_whenDeleteUser_thenThrowNotFound() throws Exception{
+        mvc.perform(delete(baseUrl+"{id}", nonExistingId))
+            .andExpect(status().isNotFound())
+            .andExpect(status().reason(userNotFoundExReason));
+    }
     //endregion
 
     //region add book
