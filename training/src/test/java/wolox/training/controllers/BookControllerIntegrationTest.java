@@ -1,4 +1,4 @@
-package wolox.training.Controllers;
+package wolox.training.controllers;
 
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.mockito.BDDMockito.given;
@@ -26,7 +26,6 @@ import static org.hamcrest.CoreMatchers.is;
 import static wolox.training.TestUtilities.createDefaultBook;
 import static wolox.training.TestUtilities.mapToJsonString;
 
-import wolox.training.controllers.BookController;
 import wolox.training.models.Book;
 import wolox.training.repositories.BookRepository;
 
@@ -50,7 +49,7 @@ public class BookControllerIntegrationTest {
     private Long nonExistingId;
 
     @Before
-    public void runBefore() throws NoSuchFieldException, IllegalAccessException {
+    public void setUp() throws NoSuchFieldException, IllegalAccessException {
         baseUrl = "/api/books/";
 
         nonExistingId = 0L;

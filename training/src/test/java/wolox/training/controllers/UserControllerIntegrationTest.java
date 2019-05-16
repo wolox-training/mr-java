@@ -1,4 +1,4 @@
-package wolox.training.Controllers;
+package wolox.training.controllers;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.BDDMockito.given;
@@ -26,7 +26,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.hamcrest.CoreMatchers.is;
 import static wolox.training.TestUtilities.mapToJsonString;
 
-import wolox.training.controllers.UserController;
 import wolox.training.models.Book;
 import wolox.training.models.User;
 import wolox.training.repositories.BookRepository;
@@ -59,7 +58,7 @@ public class UserControllerIntegrationTest {
 
 
     @Before
-    public void runBefore() throws NoSuchFieldException, IllegalAccessException {
+    public void setUp() throws NoSuchFieldException, IllegalAccessException {
         baseUrl = "/api/users/";
         nonExistingId = 0L;
 
