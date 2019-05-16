@@ -1,5 +1,6 @@
 package wolox.training.controllers;
 
+import com.sun.deploy.net.HttpResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import wolox.training.exceptions.BookAlreadyOwnedException;
 import wolox.training.exceptions.BookNotFoundException;
 import wolox.training.exceptions.NullAttributesException;
@@ -90,7 +92,11 @@ public class UserController {
 
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
 
-        user.removeBook(book);
+        try {
+            user.removeBook(book);
+        } catch (BookNotFoundException ex){
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, ex.getMessage(), ex);
+        }
 
         return userRepository.save(user);
     }

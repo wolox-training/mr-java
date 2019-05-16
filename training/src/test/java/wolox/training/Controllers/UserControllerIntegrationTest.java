@@ -8,18 +8,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static wolox.training.TestUtilities.createDefaultBook;
 import static wolox.training.TestUtilities.createDefaultUser;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import org.apache.tomcat.jni.Local;
-import org.json.JSONArray;
-import org.json.JSONObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,6 +52,11 @@ public class UserControllerIntegrationTest {
     private String userNotFoundExReason;
     private String nullAttributesExReason;
     private String idMismatchExReason;
+    private String bookNotFoundExReason;
+    private String bookAlreadyOwnedExReason;
+    private String bookNotInUserListExReason;
+    private Book book;
+
 
     @Before
     public void runBefore() throws NoSuchFieldException, IllegalAccessException {
@@ -67,9 +66,14 @@ public class UserControllerIntegrationTest {
         userNotFoundExReason = "User Not Found";
         nullAttributesExReason = "Received Null Attributes";
         idMismatchExReason = "User Id Mismatch";
+        bookNotFoundExReason = "Book Not Found";
+        bookAlreadyOwnedExReason = "Book Already Owned";
+        bookNotInUserListExReason = "This user does not own the book you are trying to delete";
 
         user = createDefaultUser(1L, "Ana");
         otherUser = createDefaultUser(2L, "Mariana");
+
+        book = createDefaultBook(10L, "Cinderella");
 
         List<User> users = new ArrayList<>();
         users.add(user);
@@ -78,6 +82,9 @@ public class UserControllerIntegrationTest {
         given(userRepository.findAll()).willReturn(users);
         given(userRepository.findById(user.getId())).willReturn(java.util.Optional.ofNullable(user));
         given(userRepository.findById(nonExistingId)).willReturn(Optional.empty());
+
+        given(bookRepository.findById(book.getId())).willReturn(Optional.of(book));
+        given(bookRepository.findById(nonExistingId)).willReturn(Optional.empty());
 
     }
 
@@ -229,9 +236,96 @@ public class UserControllerIntegrationTest {
     //endregion
 
     //region add book
+    @Test
+    public void givenBookId_givenUserId_whenAddBookToUser_thenReturnJson() throws Exception {
+        User changedUser = createDefaultUser(user.getId(), user.getName());
+        changedUser.addBook(book);
+
+        given(userRepository.save(user)).willReturn(changedUser);
+
+        mvc.perform(put(baseUrl+"{userId}/{bookId}", user.getId(), book.getId())
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.books", hasSize(changedUser.getBooks().size())));
+    }
+
+    @Test
+    public void givenNonExistingBookId_givenUserId_whenAddBookToUser_thenThrowBookNotFound() throws Exception {
+        mvc.perform(put(baseUrl+"{userId}/{bookId}", user.getId(), nonExistingId)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound())
+            .andExpect(status().reason(bookNotFoundExReason));
+    }
+
+    @Test
+    public void givenBookId_givenNonExistingUserId_whenAddBookToUser_thenThrowBookNotFound() throws Exception {
+        mvc.perform(put(baseUrl+"{userId}/{bookId}", nonExistingId, book.getId())
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound())
+            .andExpect(status().reason(userNotFoundExReason));
+    }
+
+    @Test
+    public void givenAlreadyOwnedBookId_givenUserId_whenAddBookToUser_thenThrowAlreadyOwned() throws Exception {
+        Book alreadyOwnedBook = user.getBooks().get(0);
+
+        given(bookRepository.findById(alreadyOwnedBook.getId())).willReturn(Optional.of(alreadyOwnedBook));
+
+        mvc.perform(put(baseUrl+"{userId}/{bookId}", user.getId(), alreadyOwnedBook.getId())
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isAlreadyReported())
+            .andExpect(status().reason(bookAlreadyOwnedExReason));
+    }
     //endregion
 
     //region remove book
+    @Test
+    public void givenBookId_givenUserId_whenRemoveBookFromUser_thenReturnJson() throws Exception {
+        Book removeBook = user.getBooks().get(0);
+
+        User changedUser = createDefaultUser(user.getId(), user.getName());
+        changedUser.removeBook(removeBook);
+
+        given(bookRepository.findById(removeBook.getId())).willReturn(Optional.of(removeBook));
+        given(userRepository.save(user)).willReturn(changedUser);
+
+        mvc.perform(delete(baseUrl+"{userId}/{bookId}", user.getId(), removeBook.getId())
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.books", hasSize(changedUser.getBooks().size())));
+    }
+
+    @Test
+    public void givenNotInUserBookListBookId_givenUserId_whenRemoveBookFromUser_thenThrowBookNotFound() throws Exception{
+        Book removeBook = user.getBooks().get(0);
+
+        User changedUser = createDefaultUser(user.getId(), user.getName());
+        changedUser.removeBook(removeBook);
+
+        given(bookRepository.findById(removeBook.getId())).willReturn(Optional.of(removeBook));
+        given(userRepository.findById(changedUser.getId())).willReturn(Optional.of(changedUser));
+
+        mvc.perform(delete(baseUrl+"{userId}/{bookId}", changedUser.getId(), removeBook.getId())
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound())
+            .andExpect(status().reason(bookNotInUserListExReason));
+    }
+
+    @Test
+    public void givenNonExistingBookId_givenUserId_whenRemoveBookFromUser_thenThrowBookNotFound() throws Exception{
+        mvc.perform(delete(baseUrl+"{userId}/{bookId}", user.getId(), nonExistingId)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound())
+            .andExpect(status().reason(bookNotFoundExReason));
+    }
+
+    @Test
+    public void givenBookId_givenNonExistingUserId_whenRemoveBookFromUser_thenThrowBookNotFound() throws Exception{
+        mvc.perform(delete(baseUrl+"{userId}/{bookId}", nonExistingId, book.getId())
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound())
+            .andExpect(status().reason(userNotFoundExReason));
+    }
     //endregion
 
 }
