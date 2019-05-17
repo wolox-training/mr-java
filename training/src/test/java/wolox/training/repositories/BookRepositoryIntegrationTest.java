@@ -82,13 +82,13 @@ public class BookRepositoryIntegrationTest {
 
     //region delete book
     @Test
-    public void whenDeleteBook(){
+    public void whenDeleteBookById(){
         bookRepository.deleteById(otherBook.getId());
         assertThat(bookRepository.findAll()).doesNotContain(otherBook);
     }
 
     @Test(expected = BookNotFoundException.class)
-    public void givenNonExistingId_whenDeleteBook_thenThrowBookNotFound() throws BookNotFoundException {
+    public void givenNonExistingId_whenDeleteBookById_thenThrowBookNotFound() throws BookNotFoundException {
         try{
             bookRepository.deleteById(nonExistingId);
         }catch (EmptyResultDataAccessException ex){
