@@ -1,4 +1,4 @@
-package wolox.training.models;
+package wolox.training.repositories;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.NONE;
@@ -13,7 +13,7 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.test.context.junit4.SpringRunner;
 import wolox.training.exceptions.BookNotFoundException;
-import wolox.training.repositories.BookRepository;
+import wolox.training.models.Book;
 
 @RunWith(SpringRunner.class)
 @DataJpaTest
