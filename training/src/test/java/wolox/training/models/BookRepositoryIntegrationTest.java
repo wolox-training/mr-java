@@ -2,17 +2,15 @@ package wolox.training.models;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.NONE;
-import static wolox.training.TestUtilities.createDefaultBook;
 
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.test.context.junit4.SpringRunner;
 import wolox.training.exceptions.BookNotFoundException;
 import wolox.training.repositories.BookRepository;
@@ -29,13 +27,22 @@ public class BookRepositoryIntegrationTest {
     private BookRepository bookRepository;
 
     private Book book;
+    private Book otherBook;
+    private Long nonExistingId;
 
     @Before
     public void setUp(){
+        nonExistingId = 0L;
+
         book =  new Book("J. K. Rowling", "image.png", "Harry Potter and the Philosopher's Stone",
             "-", "Bloomsbury Publishing", "1997", 223, "9780747532743", "Fantasy");
 
+        otherBook =  new Book("J. K. Rowling", "image.png", "Harry Potter and the Chamber of Secrets",
+            "-", "Bloomsbury Publishing", "1998", 223, "9780747532743", "Fantasy");
+
+
         entityManager.persist(book);
+        entityManager.persist(otherBook);
         entityManager.flush();
     }
 
@@ -49,15 +56,15 @@ public class BookRepositoryIntegrationTest {
 
     @Test(expected = BookNotFoundException.class)
     public void givenNonExistingId_whenFindById_thenThrowBookNotFound() throws BookNotFoundException {
-        Book bookFound = bookRepository.findById(0L).orElseThrow(BookNotFoundException::new);
+        Book bookFound = bookRepository.findById(nonExistingId).orElseThrow(BookNotFoundException::new);
     }
     //enregion
 
     //region save book
     @Test
     public void whenSaveBook_thenReturnBook(){
-        Book newBook = new Book("J. K. Rowling", "image.png", "Harry Potter and the Chamber of Secrets",
-            "-", "Bloomsbury Publishing", "1998", 223, "9780747532743", "Fantasy");
+        Book newBook = new Book("J. K. Rowling", "image.png", "Harry Potter and the Prisoner of Azkaban",
+            "-", "Bloomsbury Publishing", "1999", 223, "9780747532743", "Fantasy");
 
         Book addedBook = bookRepository.save(newBook);
 
@@ -72,5 +79,22 @@ public class BookRepositoryIntegrationTest {
         Book addedBook = bookRepository.save(newBook);
     }
     //enregion
+
+    //region delete book
+    @Test
+    public void whenDeleteBook(){
+        bookRepository.deleteById(otherBook.getId());
+        assertThat(bookRepository.findAll()).doesNotContain(otherBook);
+    }
+
+    @Test(expected = BookNotFoundException.class)
+    public void givenNonExistingId_whenDeleteBook_thenThrowBookNotFound() throws BookNotFoundException {
+        try{
+            bookRepository.deleteById(nonExistingId);
+        }catch (EmptyResultDataAccessException ex){
+            throw new BookNotFoundException();
+        }
+    }
+    //endregion
 
 }
