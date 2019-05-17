@@ -18,23 +18,6 @@ public class Book {
     @Column(name = "id", updatable = false, nullable = false)
     private Long id;
 
-    public Book() {
-
-    }
-
-    public Book(String author, String image, String title, String subtitle, String publisher,
-        String year, Integer pages, String isbn,String genre) {
-        setAuthor(author);
-        setImage(image);
-        setTitle(title);
-        setSubtitle(subtitle);
-        setPublisher(publisher);
-        setYear(year);
-        setPages(pages);
-        setIsbn(isbn);
-        setGenre(genre);
-    }
-
     private String genre;
     @NotNull
     private String author;
@@ -53,12 +36,27 @@ public class Book {
     @NotNull
     private String isbn;
 
+    public Book() {
+  
+    }
+  
+    public Book(String author, String image, String title, String subtitle, String publisher,
+        String year, Integer pages, String isbn) {
+        setAuthor(author);
+        setImage(image);
+        setTitle(title);
+        setSubtitle(subtitle);
+        setPublisher(publisher);
+        setYear(year);
+        setPages(pages);
+        setIsbn(isbn);
+    }
+    
     public Long getId() { return id; }
-
+  
     public String getAuthor() {
         return author;
     }
-
 
     public void setAuthor(String author) {
         Preconditions.checkNotNull(author, "The author cannot be null");
@@ -115,7 +113,7 @@ public class Book {
     }
 
     public void setPages(Integer pages) {
-        Preconditions.checkArgument(pages!=null && pages > 1, "The book must have at least 1 page");
+        Preconditions.checkArgument(pages!=null && pages > 0, "The book must have at least 1 page");
         this.pages = pages;
     }
 

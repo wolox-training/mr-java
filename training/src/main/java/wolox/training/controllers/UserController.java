@@ -53,7 +53,7 @@ public class UserController {
 
     @PutMapping("/{id}")
     public User update(@PathVariable Long id, @RequestBody User user) throws UserNotFoundException, UserIdMismatchException, NullAttributesException {
-        if(id != user.getId()){
+        if(!id.equals(user.getId())){
             throw  new UserIdMismatchException();
         }
 
