@@ -1,5 +1,8 @@
 package wolox.training.controllers;
 
+import java.io.IOException;
+import java.net.URISyntaxException;
+import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
@@ -20,6 +23,7 @@ import wolox.training.exceptions.NullArgumentsException;
 import wolox.training.exceptions.NullAttributesException;
 import wolox.training.models.Book;
 import wolox.training.repositories.BookRepository;
+import wolox.training.services.OpenLibraryService;
 
 @RestController
 @RequestMapping("/api/books")
@@ -27,6 +31,9 @@ public class BookController {
 
     @Autowired
     BookRepository bookRepository;
+
+
+    OpenLibraryService service = new OpenLibraryService();
 
     @GetMapping("/greeting")
     public String greeting(@RequestParam(name="name", required=false, defaultValue="World") String name, Model model){
@@ -43,6 +50,13 @@ public class BookController {
     @GetMapping("/{id}")
     public Book findOne(@PathVariable Long id) throws BookNotFoundException {
         return bookRepository.findById(id).orElseThrow(BookNotFoundException::new);
+    }
+
+    @GetMapping("/findOne")
+    public Book findByIsbn(@RequestParam(name="isbn") String isbn)
+        throws IOException, URISyntaxException, JSONException {
+
+        return service.bookInfo();
     }
 
     @PostMapping
