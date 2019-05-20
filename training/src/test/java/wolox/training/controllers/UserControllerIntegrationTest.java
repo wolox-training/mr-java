@@ -46,6 +46,7 @@ public class UserControllerIntegrationTest {
 
     private User user;
     private User otherUser;
+    private List<User> users = new ArrayList<>();
     private Long nonExistingId;
     private String baseUrl;
     private String userNotFoundExReason;
@@ -74,7 +75,6 @@ public class UserControllerIntegrationTest {
 
         book = createDefaultBook(10L, "Cinderella");
 
-        List<User> users = new ArrayList<>();
         users.add(user);
         users.add(otherUser);
 
@@ -93,7 +93,7 @@ public class UserControllerIntegrationTest {
         mvc.perform(get(baseUrl)
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$", hasSize(2)))
+            .andExpect(jsonPath("$", hasSize(users.size())))
             .andExpect(jsonPath("$[0].name", is(user.getName())))
             .andExpect(jsonPath("$[1].name", is(otherUser.getName())));
     }
@@ -175,7 +175,7 @@ public class UserControllerIntegrationTest {
             .andExpect(jsonPath("$.name", is(changedUser.getName())))
             .andExpect(jsonPath("$.username", is(changedUser.getUsername())))
             .andExpect(jsonPath("$.birthdate",  is(changedUser.getBirthdate().toString())))
-            .andExpect(jsonPath("$.books", hasSize(3)));
+            .andExpect(jsonPath("$.books", hasSize(changedUser.getBooks().size())));
     }
 
     @Test

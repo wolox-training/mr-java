@@ -41,7 +41,7 @@ public class Book {
     }
   
     public Book(String author, String image, String title, String subtitle, String publisher,
-        String year, Integer pages, String isbn) {
+        String year, Integer pages, String isbn, String genre) {
         setAuthor(author);
         setImage(image);
         setTitle(title);
@@ -50,6 +50,7 @@ public class Book {
         setYear(year);
         setPages(pages);
         setIsbn(isbn);
+        setGenre(genre);
     }
     
     public Long getId() { return id; }
@@ -141,9 +142,6 @@ public class Book {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
