@@ -9,9 +9,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 import wolox.training.exceptions.BookAlreadyOwnedException;
 import wolox.training.exceptions.BookNotFoundException;
+import wolox.training.exceptions.NullAttributesException;
 import wolox.training.exceptions.UserIdMismatchException;
 import wolox.training.exceptions.UserNotFoundException;
 import wolox.training.models.Book;
@@ -19,7 +22,8 @@ import wolox.training.models.User;
 import wolox.training.repositories.BookRepository;
 import wolox.training.repositories.UserRepository;
 
-@Controller
+@RequestMapping("/api/users")
+@RestController
 public class UserController {
 
     @Autowired
@@ -46,18 +50,26 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    public User update(@PathVariable Long id, @RequestBody User user) throws UserNotFoundException, UserIdMismatchException {
+    public User update(@PathVariable Long id, @RequestBody User user) throws UserNotFoundException, UserIdMismatchException, NullAttributesException {
         if(!id.equals(user.getId())){
             throw  new UserIdMismatchException();
         }
 
         userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+
+        if(user.anyRequiredAttributeNull()){
+            throw new NullAttributesException();
+        }
+
         return userRepository.save(user);
     }
-
+  
     @PostMapping(path="/")
     @ResponseStatus(HttpStatus.CREATED)
-    public User create(@RequestBody User user){
+    public User create(@RequestBody User user) throws NullAttributesException {
+        if(user.anyRequiredAttributeNull()){
+            throw new NullAttributesException();
+        }
         return userRepository.save(user);
     }
 

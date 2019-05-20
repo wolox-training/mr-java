@@ -5,6 +5,7 @@ import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.validation.constraints.NotNull;
 import org.postgresql.shaded.com.ongres.scram.common.util.Preconditions;
 
 @Entity
@@ -14,28 +15,29 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", updatable = false, nullable = false)
     private Long id;
-
+  
     private String genre;
-
+    @NotNull
     private String author;
-
+    @NotNull
     private String image;
-
+    @NotNull
     private String title;
-
+    @NotNull
     private String subtitle;
-
+    @NotNull
     private String publisher;
-
+    @NotNull
     private String year;
-
+    @NotNull
     private Integer pages;
-
+    @NotNull
     private String isbn;
 
     public Book() {
-
+  
     }
+  
     public Book(String author, String image, String title, String subtitle, String publisher,
         String year, Integer pages, String isbn) {
         setAuthor(author);
@@ -128,6 +130,11 @@ public class Book {
 
     public void setGenre(String genre) {
         this.genre = genre;
+    }
+
+    public Boolean anyRequiredAttributeNull()
+    {
+        return (author==null || image==null || title ==null || subtitle==null || publisher==null || year==null || pages==null || isbn==null);
     }
 
 }
