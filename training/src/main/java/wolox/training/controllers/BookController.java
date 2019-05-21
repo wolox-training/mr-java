@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import wolox.training.exceptions.BookIdMismatchException;
 import wolox.training.exceptions.BookNotFoundException;
+import wolox.training.exceptions.ConnectionFailedException;
 import wolox.training.exceptions.NullArgumentsException;
 import wolox.training.exceptions.NullAttributesException;
 import wolox.training.models.Book;
@@ -54,9 +55,17 @@ public class BookController {
 
     @GetMapping("/findOne")
     public Book findByIsbn(@RequestParam(name="isbn") String isbn)
-        throws IOException, URISyntaxException, JSONException {
+        throws IOException, URISyntaxException, JSONException, ConnectionFailedException, BookNotFoundException, NullAttributesException {
 
-        return service.bookInfo();
+        Book book;
+
+        try{
+            book = bookRepository.findByIsbn(isbn).orElseThrow(BookNotFoundException::new);
+        } catch (BookNotFoundException ex){
+            book = service.bookInfo(isbn);
+            book = this.create(book);
+        }
+        return book;
     }
 
     @PostMapping

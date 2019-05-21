@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.node.IntNode;
+import com.google.common.base.Joiner;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
@@ -21,6 +22,8 @@ public class BookDTO {
     private String publishDate;
     private Integer numberOfPages;
     private List<String> authors;
+
+    private String image;
 
     public String getISBN() {
         return ISBN;
@@ -76,6 +79,20 @@ public class BookDTO {
 
     public void setAuthors(List<String> authors) {
         this.authors = authors;
+    }
+
+    public String getImage() { return image; }
+
+    public void setImage(String image) { this.image = image; }
+
+    public String getAuthorsAsString(){
+        String response = Joiner.on(" - ").join(this.getAuthors());
+        return response;
+    }
+
+    public String getPublishersAsString(){
+        String response = Joiner.on(" - ").join(this.getPublishers());
+        return response;
     }
 
 }

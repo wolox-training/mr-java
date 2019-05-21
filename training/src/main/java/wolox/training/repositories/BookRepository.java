@@ -10,4 +10,6 @@ public interface BookRepository extends CrudRepository<Book, Long> {
 
     public Optional<Book> findFirstByAuthor(String author);
 
+    public Optional<Book> findByIsbn(String isbn);
+
 }
