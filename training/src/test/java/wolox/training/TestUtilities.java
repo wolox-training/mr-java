@@ -25,6 +25,13 @@ public abstract class TestUtilities {
         return book;
     }
 
+    public static Book setBookId(Long id, Book book) throws NoSuchFieldException, IllegalAccessException {
+        Field fieldId = book.getClass().getDeclaredField("id");
+        fieldId.setAccessible(true);
+        fieldId.set(book, id);
+        return book;
+    }
+
     public static String mapToJsonString(Object obj) throws JsonProcessingException {
 
         ObjectMapper mapper = new ObjectMapper();

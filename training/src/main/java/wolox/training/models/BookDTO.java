@@ -95,4 +95,17 @@ public class BookDTO {
         return response;
     }
 
+
+    public Book toBook(){
+        Book book = new Book();
+        book.setPublisher(this.getPublishersAsString());
+        book.setAuthor(this.getAuthorsAsString());
+        book.setTitle(this.getTitle());
+        book.setIsbn(this.getISBN());
+        book.setPages(this.getNumberOfPages());
+        book.setSubtitle(this.getSubtitle());
+        book.setImage(this.getImage());
+        book.setYear(this.getPublishDate());
+        return book;
+    }
 }

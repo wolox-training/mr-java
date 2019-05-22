@@ -52,6 +52,17 @@ public class Book {
         setIsbn(isbn);
         setGenre(genre);
     }
+
+    public Book(BookDTO bookDTO) {
+        setPublisher(bookDTO.getPublishersAsString());
+        setAuthor(bookDTO.getAuthorsAsString());
+        setTitle(bookDTO.getTitle());
+        setIsbn(bookDTO.getISBN());
+        setPages(bookDTO.getNumberOfPages());
+        setSubtitle(bookDTO.getSubtitle());
+        setImage(bookDTO.getImage());
+        setYear(bookDTO.getPublishDate());
+    }
     
     public Long getId() { return id; }
   

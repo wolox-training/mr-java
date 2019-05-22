@@ -57,8 +57,8 @@ public class BookController {
         try{
             return new ResponseEntity<>(bookRepository.findByIsbn(isbn).orElseThrow(BookNotFoundException::new),HttpStatus.OK);
         } catch (BookNotFoundException ex){
-            Book book = service.bookInfo(isbn);
-            return new ResponseEntity<>(this.create(book), HttpStatus.CREATED);
+            Book newBook = new Book(service.bookInfo(isbn));
+            return new ResponseEntity<>(this.create(newBook), HttpStatus.CREATED);
         }
     }
 

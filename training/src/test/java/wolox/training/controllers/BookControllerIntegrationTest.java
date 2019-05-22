@@ -25,9 +25,11 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.hamcrest.CoreMatchers.is;
 import static wolox.training.TestUtilities.createDefaultBook;
 import static wolox.training.TestUtilities.mapToJsonString;
+import static wolox.training.TestUtilities.setBookId;
 
 import wolox.training.exceptions.BookNotFoundException;
 import wolox.training.models.Book;
+import wolox.training.models.BookDTO;
 import wolox.training.repositories.BookRepository;
 import wolox.training.services.OpenLibraryService;
 
@@ -123,27 +125,49 @@ public class BookControllerIntegrationTest {
     }
 
     @Test
-    public void givenNotInBdButInApiIsbn_whenFindByIsbn_thenReturnJson() throws Exception {
-        Book apiBook = createDefaultBook(3L, "Zen speaks");
-        apiBook.setIsbn("0385472579");
-        apiBook.setPublisher("Anchor Books");
-        apiBook.setSubtitle("shouts of nothingness");
-        apiBook.setPages(159);
-        apiBook.setImage("https://covers.openlibrary.org/b/id/240726-S.jpg");
-        apiBook.setYear("1994");
-        apiBook.setAuthor("Zhizhong Cai");
+    public void givenInApiIsbn_whenFindByIsbn_thenReturnJson() throws Exception {
+        List<String> publishers = new ArrayList<>();
+        publishers.add("Anchor Books");
 
-        given(bookRepository.findByIsbn(apiBook.getIsbn())).willReturn(Optional.empty());
-        given(openLibraryService.bookInfo(apiBook.getIsbn())).willReturn(apiBook);
-        given(bookRepository.save(apiBook)).willReturn(apiBook);
+        List<String> authors = new ArrayList<>();
+        authors.add("Zhizhong Cai");
 
-        mvc.perform(get(baseUrl+"findOne/{isbn}", apiBook.getIsbn())
+        String isbn = "0385472579";
+
+        BookDTO bookDTO = new BookDTO();
+        bookDTO.setISBN(isbn);
+        bookDTO.setTitle("Zen speaks");
+        bookDTO.setPublishers(publishers);
+        bookDTO.setSubtitle("shouts of nothingness");
+        bookDTO.setNumberOfPages(159);
+        bookDTO.setImage("https://covers.openlibrary.org/b/id/240726-S.jpg");
+        bookDTO.setPublishDate("1994");
+        bookDTO.setAuthors(authors);
+
+        Book newBook = new Book(bookDTO);
+        Book newBookWithId = newBook;
+        newBookWithId = setBookId(3L, newBook);
+
+        given(bookRepository.findByIsbn(isbn)).willReturn(Optional.empty());
+        given(openLibraryService.bookInfo(isbn)).willReturn(bookDTO);
+        given(bookRepository.save(newBook)).willReturn(newBookWithId);
+
+        mvc.perform(get(baseUrl+"findOne/{isbn}", isbn)
             .contentType(MediaType.APPLICATION_JSON))
-            .andExpect(status().isCreated());
+            .andExpect(status().isCreated())
+            .andExpect(jsonPath("$", hasSize(1)))
+            .andExpect(jsonPath("author", is(newBook.getAuthor())))
+            .andExpect(jsonPath("publisher", is(newBook.getPublisher())))
+            .andExpect(jsonPath("title", is(newBook.getTitle())))
+            .andExpect(jsonPath("subtitle", is(newBook.getSubtitle())))
+            .andExpect(jsonPath("year", is(newBook.getYear())))
+            .andExpect(jsonPath("pages", is(newBook.getPages())))
+            .andExpect(jsonPath("image", is(newBook.getImage())))
+            .andExpect(jsonPath("isbn", is(newBook.getIsbn())));
     }
 
     @Test
-    public void givenNotInApiNorInBdIsbn_whenFindByIsbn_thenThrowBookNotFound() throws Exception {
+    public void givenNonExistingIsbn_whenFindByIsbn_thenThrowBookNotFound() throws Exception {
         String nonExistingIsbn = "000";
 
         given(bookRepository.findByIsbn(nonExistingIsbn)).willReturn(Optional.empty());

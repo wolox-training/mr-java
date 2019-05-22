@@ -21,10 +21,9 @@ import wolox.training.models.BookDTO;
 public class OpenLibraryService {
 
 
-    public Book bookInfo(String isbn)
+    public BookDTO bookInfo(String isbn)
         throws IOException, JSONException, ConnectionFailedException, BookNotFoundException {
 
-        Book book;
         BookDTO bookDTO;
 
         URL url = new URL("https://openlibrary.org/api/books?bibkeys=ISBN:"+isbn+"&format=json&jscmd=data");
@@ -47,27 +46,12 @@ public class OpenLibraryService {
 
         bookDTO = createBookDTO(jo, isbn);
 
-        book = getBookFromBookDTO(bookDTO);
-
-        return book;
+        return bookDTO;
     }
 
 
     //region private  methods
-    private Book getBookFromBookDTO(BookDTO bookDTO) {
-        Book book = new Book();
 
-        book.setPublisher(bookDTO.getPublishersAsString());
-        book.setAuthor(bookDTO.getAuthorsAsString());
-        book.setTitle(bookDTO.getTitle());
-        book.setIsbn(bookDTO.getISBN());
-        book.setPages(bookDTO.getNumberOfPages());
-        book.setSubtitle(bookDTO.getSubtitle());
-        book.setImage(bookDTO.getImage());
-        book.setYear(bookDTO.getPublishDate());
-
-        return book;
-    }
 
     private String getResponseString(InputStream is) throws IOException {
 
