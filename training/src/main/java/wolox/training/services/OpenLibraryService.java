@@ -52,6 +52,8 @@ public class OpenLibraryService {
         return book;
     }
 
+
+    //region private  methods
     private Book getBookFromBookDTO(BookDTO bookDTO) {
         Book book = new Book();
 
@@ -107,7 +109,7 @@ public class OpenLibraryService {
     }
 
     /**
-     * given a property and a JsonArray with objects on it, returns a list of string values for the given property
+     * given a property name and a JsonArray with objects on it, returns a list of string values for the given property
      * @param jsonArray
      * @param propertyName
      * @return list of string values for the given property
@@ -122,5 +124,6 @@ public class OpenLibraryService {
 
         return list;
     }
+    //endregion
 
 }

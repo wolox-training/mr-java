@@ -1,11 +1,10 @@
 package wolox.training.controllers;
 
 import java.io.IOException;
-import java.net.URISyntaxException;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.stereotype.Controller;
+import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,7 +19,6 @@ import org.springframework.web.bind.annotation.RestController;
 import wolox.training.exceptions.BookIdMismatchException;
 import wolox.training.exceptions.BookNotFoundException;
 import wolox.training.exceptions.ConnectionFailedException;
-import wolox.training.exceptions.NullArgumentsException;
 import wolox.training.exceptions.NullAttributesException;
 import wolox.training.models.Book;
 import wolox.training.repositories.BookRepository;
@@ -32,7 +30,6 @@ public class BookController {
 
     @Autowired
     BookRepository bookRepository;
-
 
     OpenLibraryService service = new OpenLibraryService();
 
@@ -53,19 +50,16 @@ public class BookController {
         return bookRepository.findById(id).orElseThrow(BookNotFoundException::new);
     }
 
-    @GetMapping("/findOne")
-    public Book findByIsbn(@RequestParam(name="isbn") String isbn)
-        throws IOException, URISyntaxException, JSONException, ConnectionFailedException, BookNotFoundException, NullAttributesException {
-
-        Book book;
+    @GetMapping("/findOne/{isbn}")
+    public ResponseEntity<Book> findByIsbn(@PathVariable String isbn)
+        throws IOException, JSONException, ConnectionFailedException, BookNotFoundException, NullAttributesException {
 
         try{
-            book = bookRepository.findByIsbn(isbn).orElseThrow(BookNotFoundException::new);
+            return new ResponseEntity<>(bookRepository.findByIsbn(isbn).orElseThrow(BookNotFoundException::new),HttpStatus.OK);
         } catch (BookNotFoundException ex){
-            book = service.bookInfo(isbn);
-            book = this.create(book);
+            Book book = service.bookInfo(isbn);
+            return new ResponseEntity<>(this.create(book), HttpStatus.CREATED);
         }
-        return book;
     }
 
     @PostMapping
@@ -88,6 +82,7 @@ public class BookController {
         if (!id.equals(book.getId())){
             throw new BookIdMismatchException();
         }
+
         bookRepository.findById(id).orElseThrow(BookNotFoundException::new);
 
         if(book.anyRequiredAttributeNull()){
@@ -96,6 +91,5 @@ public class BookController {
 
         return bookRepository.save(book);
     }
-
 }
 

@@ -26,8 +26,10 @@ import static org.hamcrest.CoreMatchers.is;
 import static wolox.training.TestUtilities.createDefaultBook;
 import static wolox.training.TestUtilities.mapToJsonString;
 
+import wolox.training.exceptions.BookNotFoundException;
 import wolox.training.models.Book;
 import wolox.training.repositories.BookRepository;
+import wolox.training.services.OpenLibraryService;
 
 
 @RunWith(SpringRunner.class)
@@ -39,6 +41,9 @@ public class BookControllerIntegrationTest {
 
     @MockBean
     private BookRepository bookRepository;
+
+    @MockBean
+    private OpenLibraryService openLibraryService;
 
     private String baseUrl;
     private String bookNotFoundExReason;
@@ -100,6 +105,51 @@ public class BookControllerIntegrationTest {
     public void givenNonExistingId_whenGetBook_thenThrowNotFound() throws Exception {
 
         mvc.perform(get(baseUrl+"{id}",nonExistingId)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isNotFound())
+            .andExpect(status().reason(bookNotFoundExReason));
+    }
+
+    @Test
+    public void givenInBdIsbn_whenFindByIsbn_thenReturnJson() throws Exception {
+        given(bookRepository.findByIsbn(book.getIsbn())).willReturn(Optional.ofNullable(book));
+
+        mvc.perform(get(baseUrl+"findOne/{isbn}", book.getIsbn())
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("title", is(book.getTitle())))
+            .andExpect(jsonPath("author", is(book.getAuthor())))
+            .andExpect(jsonPath("publisher", is(book.getPublisher())));
+    }
+
+    @Test
+    public void givenNotInBdButInApiIsbn_whenFindByIsbn_thenReturnJson() throws Exception {
+        Book apiBook = createDefaultBook(3L, "Zen speaks");
+        apiBook.setIsbn("0385472579");
+        apiBook.setPublisher("Anchor Books");
+        apiBook.setSubtitle("shouts of nothingness");
+        apiBook.setPages(159);
+        apiBook.setImage("https://covers.openlibrary.org/b/id/240726-S.jpg");
+        apiBook.setYear("1994");
+        apiBook.setAuthor("Zhizhong Cai");
+
+        given(bookRepository.findByIsbn(apiBook.getIsbn())).willReturn(Optional.empty());
+        given(openLibraryService.bookInfo(apiBook.getIsbn())).willReturn(apiBook);
+        given(bookRepository.save(apiBook)).willReturn(apiBook);
+
+        mvc.perform(get(baseUrl+"findOne/{isbn}", apiBook.getIsbn())
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isCreated());
+    }
+
+    @Test
+    public void givenNotInApiNorInBdIsbn_whenFindByIsbn_thenThrowBookNotFound() throws Exception {
+        String nonExistingIsbn = "000";
+
+        given(bookRepository.findByIsbn(nonExistingIsbn)).willReturn(Optional.empty());
+        given(openLibraryService.bookInfo(nonExistingIsbn)).willThrow(BookNotFoundException.class);
+
+        mvc.perform(get(baseUrl+"findOne/{isbn}","nonExistingIsbn")
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isNotFound())
             .andExpect(status().reason(bookNotFoundExReason));
