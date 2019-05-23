@@ -1,7 +1,10 @@
 package wolox.training.controllers;
 
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
+import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -208,7 +211,7 @@ public class BookControllerIntegrationTest {
         String nonExistingIsbn = "000";
 
         given(bookRepository.findByIsbn(nonExistingIsbn)).willReturn(Optional.empty());
-        given(openLibraryService.bookInfo(nonExistingIsbn)).willThrow(BookNotFoundException.class);
+        willThrow(new BookNotFoundException()).given(openLibraryService).bookInfo(any(String.class));
 
         mvc.perform(get(baseUrl+"findOne/{isbn}","nonExistingIsbn")
             .contentType(MediaType.APPLICATION_JSON))
