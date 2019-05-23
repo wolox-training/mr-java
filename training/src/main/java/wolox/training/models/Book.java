@@ -1,7 +1,6 @@
 package wolox.training.models;
 
 import java.util.Objects;
-import java.util.Optional;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -9,6 +8,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.validation.constraints.NotNull;
 import org.postgresql.shaded.com.ongres.scram.common.util.Preconditions;
+import wolox.training.exceptions.CouldNotCreateBookFromDTO;
 
 @Entity
 public class Book {
@@ -53,15 +53,19 @@ public class Book {
         setGenre(genre);
     }
 
-    public Book(BookDTO bookDTO) {
-        setPublisher(bookDTO.getPublishersAsString());
-        setAuthor(bookDTO.getAuthorsAsString());
-        setTitle(bookDTO.getTitle());
-        setIsbn(bookDTO.getISBN());
-        setPages(bookDTO.getNumberOfPages());
-        setSubtitle(bookDTO.getSubtitle());
-        setImage(bookDTO.getImage());
-        setYear(bookDTO.getPublishDate());
+    public Book(BookDTO bookDTO) throws CouldNotCreateBookFromDTO {
+        try {
+            setPublisher(bookDTO.getPublishersAsString());
+            setAuthor(bookDTO.getAuthorsAsString());
+            setTitle(bookDTO.getTitle());
+            setIsbn(bookDTO.getISBN());
+            setPages(bookDTO.getNumberOfPages());
+            setSubtitle(bookDTO.getSubtitle());
+            setImage(bookDTO.getImage());
+            setYear(bookDTO.getYear());
+        }catch (Exception ex){
+            throw new CouldNotCreateBookFromDTO(ex.getMessage());
+        }
     }
     
     public Long getId() { return id; }

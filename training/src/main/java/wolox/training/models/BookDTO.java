@@ -12,6 +12,9 @@ import com.google.common.base.Joiner;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import wolox.training.exceptions.CouldNotCreateBookFromDTO;
 
 public class BookDTO {
 
@@ -95,17 +98,13 @@ public class BookDTO {
         return response;
     }
 
-
-    public Book toBook(){
-        Book book = new Book();
-        book.setPublisher(this.getPublishersAsString());
-        book.setAuthor(this.getAuthorsAsString());
-        book.setTitle(this.getTitle());
-        book.setIsbn(this.getISBN());
-        book.setPages(this.getNumberOfPages());
-        book.setSubtitle(this.getSubtitle());
-        book.setImage(this.getImage());
-        book.setYear(this.getPublishDate());
-        return book;
+    public String getYear(){
+        Pattern pattern = Pattern.compile(".*(\\d{4}).*");
+        Matcher matcher = pattern.matcher(getPublishDate());
+        if(!matcher.matches()) {
+            throw new IllegalStateException("Could not get year from publish date");
+        }
+        return matcher.group(1);
     }
+
 }

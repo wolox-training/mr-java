@@ -54,6 +54,9 @@ public class BookControllerIntegrationTest {
     private Book book;
     private Book otherBook;
     private Long nonExistingId;
+    private BookDTO bookDTO;
+    private List<String> authors;
+    private List<String> publishers;
 
     @Before
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
@@ -71,6 +74,22 @@ public class BookControllerIntegrationTest {
         List<Book> books = new ArrayList<Book>();
         books.add(book);
         books.add(otherBook);
+
+        publishers = new ArrayList<>();
+        publishers.add("Anchor Books");
+
+        authors = new ArrayList<>();
+        authors.add("Zhizhong Cai");
+
+        bookDTO = new BookDTO();
+        bookDTO.setISBN("0385472579");
+        bookDTO.setTitle("Zen speaks");
+        bookDTO.setPublishers(publishers);
+        bookDTO.setSubtitle("shouts of nothingness");
+        bookDTO.setNumberOfPages(159);
+        bookDTO.setImage("https://covers.openlibrary.org/b/id/240726-S.jpg");
+        bookDTO.setPublishDate("1994");
+        bookDTO.setAuthors(authors);
 
         given(bookRepository.findAll()).willReturn(books);
         given(bookRepository.findById(book.getId())).willReturn(java.util.Optional.of(book));
@@ -126,36 +145,54 @@ public class BookControllerIntegrationTest {
 
     @Test
     public void givenInApiIsbn_whenFindByIsbn_thenReturnJson() throws Exception {
-        List<String> publishers = new ArrayList<>();
-        publishers.add("Anchor Books");
 
-        List<String> authors = new ArrayList<>();
-        authors.add("Zhizhong Cai");
-
-        String isbn = "0385472579";
-
-        BookDTO bookDTO = new BookDTO();
-        bookDTO.setISBN(isbn);
-        bookDTO.setTitle("Zen speaks");
-        bookDTO.setPublishers(publishers);
-        bookDTO.setSubtitle("shouts of nothingness");
-        bookDTO.setNumberOfPages(159);
-        bookDTO.setImage("https://covers.openlibrary.org/b/id/240726-S.jpg");
-        bookDTO.setPublishDate("1994");
-        bookDTO.setAuthors(authors);
+        String isbn = bookDTO.getISBN();
 
         Book newBook = new Book(bookDTO);
-        Book newBookWithId = newBook;
-        newBookWithId = setBookId(3L, newBook);
 
         given(bookRepository.findByIsbn(isbn)).willReturn(Optional.empty());
         given(openLibraryService.bookInfo(isbn)).willReturn(bookDTO);
-        given(bookRepository.save(newBook)).willReturn(newBookWithId);
+        given(bookRepository.save(new Book(bookDTO))).willReturn(newBook);
 
         mvc.perform(get(baseUrl+"findOne/{isbn}", isbn)
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isCreated())
-            .andExpect(jsonPath("$", hasSize(1)))
+            .andExpect(jsonPath("author", is(newBook.getAuthor())))
+            .andExpect(jsonPath("publisher", is(newBook.getPublisher())))
+            .andExpect(jsonPath("title", is(newBook.getTitle())))
+            .andExpect(jsonPath("subtitle", is(newBook.getSubtitle())))
+            .andExpect(jsonPath("year", is(newBook.getYear())))
+            .andExpect(jsonPath("pages", is(newBook.getPages())))
+            .andExpect(jsonPath("image", is(newBook.getImage())))
+            .andExpect(jsonPath("isbn", is(newBook.getIsbn())));
+    }
+
+    /**
+     * Complicated attributes makes reference to an entity with a string date that contains more than the year or one with more than one authors or publishers
+     */
+    @Test
+    public void givenInApiIsbnWithManyAuthors_whenFindByIsbn_thenReturnJson()
+        throws Exception {
+
+        publishers.add("Other publisher");
+        authors.add("Other author");
+        authors.add("Another author");
+
+        bookDTO.setPublishers(publishers);
+        bookDTO.setPublishDate("March 1994");
+        bookDTO.setAuthors(authors);
+
+        String isbn = bookDTO.getISBN();
+
+        Book newBook = new Book(bookDTO);
+
+        given(bookRepository.findByIsbn(isbn)).willReturn(Optional.empty());
+        given(openLibraryService.bookInfo(isbn)).willReturn(bookDTO);
+        given(bookRepository.save(new Book(bookDTO))).willReturn(newBook);
+
+        mvc.perform(get(baseUrl+"findOne/{isbn}", isbn)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isCreated())
             .andExpect(jsonPath("author", is(newBook.getAuthor())))
             .andExpect(jsonPath("publisher", is(newBook.getPublisher())))
             .andExpect(jsonPath("title", is(newBook.getTitle())))

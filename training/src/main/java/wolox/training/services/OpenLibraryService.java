@@ -8,21 +8,20 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.springframework.stereotype.Service;
 import wolox.training.exceptions.BookNotFoundException;
 import wolox.training.exceptions.ConnectionFailedException;
-import wolox.training.models.Book;
+import wolox.training.exceptions.CouldNotReadBookFromAPI;
 import wolox.training.models.BookDTO;
 
+@Service
 public class OpenLibraryService {
 
-
     public BookDTO bookInfo(String isbn)
-        throws IOException, JSONException, ConnectionFailedException, BookNotFoundException {
+        throws IOException, JSONException, ConnectionFailedException, BookNotFoundException, CouldNotReadBookFromAPI {
 
         BookDTO bookDTO;
 
@@ -49,10 +48,7 @@ public class OpenLibraryService {
         return bookDTO;
     }
 
-
     //region private  methods
-
-
     private String getResponseString(InputStream is) throws IOException {
 
         String line;
@@ -68,26 +64,21 @@ public class OpenLibraryService {
         return response.toString();
     }
 
-    private BookDTO createBookDTO(JSONObject jo, String isbn) throws JSONException {
+    private BookDTO createBookDTO(JSONObject jo, String isbn) throws CouldNotReadBookFromAPI {
         BookDTO bookDTO = new BookDTO();
 
-        bookDTO.setISBN(isbn);
-        bookDTO.setTitle(jo.getString("title"));
         try {
+            bookDTO.setISBN(isbn);
+            bookDTO.setTitle(jo.getString("title"));
             bookDTO.setSubtitle(jo.getString("subtitle"));
+            bookDTO.setPublishers(fromJsonArrayToNamesList(jo.getJSONArray("publishers"), "name"));
+            bookDTO.setNumberOfPages(jo.getInt("number_of_pages"));
+            bookDTO.setPublishDate(jo.getString("publish_date"));
+            bookDTO.setAuthors(fromJsonArrayToNamesList(jo.getJSONArray("authors"), "name"));
+            bookDTO.setImage(jo.getJSONObject("cover").getString("small"));
         }catch (Exception ex){
-            bookDTO.setSubtitle("-");
+            throw new CouldNotReadBookFromAPI(ex.getMessage());
         }
-        bookDTO.setPublishers(fromJsonArrayToNamesList(jo.getJSONArray("publishers"), "name"));
-        bookDTO.setNumberOfPages(jo.getInt("number_of_pages"));
-
-        Pattern pattern = Pattern.compile(".*(\\d{4}).*");
-        Matcher matcher = pattern.matcher(jo.getString("publish_date"));
-        if(matcher.matches()) {
-            bookDTO.setPublishDate(matcher.group(1));
-        }
-        bookDTO.setAuthors(fromJsonArrayToNamesList(jo.getJSONArray("authors"), "name"));
-        bookDTO.setImage(jo.getJSONObject("cover").getString("small"));
 
         return bookDTO;
     }
