@@ -8,7 +8,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.validation.constraints.NotNull;
 import org.postgresql.shaded.com.ongres.scram.common.util.Preconditions;
-import wolox.training.exceptions.CouldNotCreateBookFromDTO;
+import wolox.training.exceptions.UnableToCreateBookFromDTOException;
 
 @Entity
 public class Book {
@@ -53,7 +53,7 @@ public class Book {
         setGenre(genre);
     }
 
-    public Book(BookDTO bookDTO) throws CouldNotCreateBookFromDTO {
+    public Book(BookDTO bookDTO) throws UnableToCreateBookFromDTOException {
         try {
             setPublisher(bookDTO.getPublishersAsString());
             setAuthor(bookDTO.getAuthorsAsString());
@@ -64,7 +64,7 @@ public class Book {
             setImage(bookDTO.getImage());
             setYear(bookDTO.getYear());
         }catch (Exception ex){
-            throw new CouldNotCreateBookFromDTO(ex.getMessage());
+            throw new UnableToCreateBookFromDTOException(ex.getMessage());
         }
     }
     

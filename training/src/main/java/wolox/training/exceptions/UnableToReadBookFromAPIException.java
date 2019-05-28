@@ -4,13 +4,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(code = HttpStatus.CONFLICT, reason = "Could not read book from API")
-public class CouldNotReadBookFromAPI extends Exception {
+public class UnableToReadBookFromAPIException extends Exception {
 
-    public CouldNotReadBookFromAPI(){
+    public UnableToReadBookFromAPIException(){
         super();
     }
 
-    public CouldNotReadBookFromAPI(String message){
+    public UnableToReadBookFromAPIException(String message){
         super(message);
     }
 

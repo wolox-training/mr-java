@@ -19,11 +19,10 @@ import org.springframework.web.bind.annotation.RestController;
 import wolox.training.exceptions.BookIdMismatchException;
 import wolox.training.exceptions.BookNotFoundException;
 import wolox.training.exceptions.ConnectionFailedException;
-import wolox.training.exceptions.CouldNotCreateBookFromDTO;
-import wolox.training.exceptions.CouldNotReadBookFromAPI;
+import wolox.training.exceptions.UnableToCreateBookFromDTOException;
+import wolox.training.exceptions.UnableToReadBookFromAPIException;
 import wolox.training.exceptions.NullAttributesException;
 import wolox.training.models.Book;
-import wolox.training.models.BookDTO;
 import wolox.training.repositories.BookRepository;
 import wolox.training.services.OpenLibraryService;
 
@@ -54,9 +53,9 @@ public class BookController {
         return bookRepository.findById(id).orElseThrow(BookNotFoundException::new);
     }
 
-    @GetMapping("/findOne/{isbn}")
+    @GetMapping("/isbn/{isbn}")
     public ResponseEntity<Book> findByIsbn(@PathVariable String isbn)
-        throws IOException, JSONException, ConnectionFailedException, BookNotFoundException, NullAttributesException, CouldNotReadBookFromAPI, CouldNotCreateBookFromDTO {
+        throws IOException, JSONException, ConnectionFailedException, BookNotFoundException, NullAttributesException, UnableToReadBookFromAPIException, UnableToCreateBookFromDTOException {
 
         try{
             return new ResponseEntity<>(bookRepository.findByIsbn(isbn).orElseThrow(BookNotFoundException::new),HttpStatus.OK);

@@ -14,18 +14,18 @@ import org.json.JSONObject;
 import org.springframework.stereotype.Service;
 import wolox.training.exceptions.BookNotFoundException;
 import wolox.training.exceptions.ConnectionFailedException;
-import wolox.training.exceptions.CouldNotReadBookFromAPI;
+import wolox.training.exceptions.UnableToReadBookFromAPIException;
 import wolox.training.models.BookDTO;
 
 @Service
 public class OpenLibraryService {
 
     public BookDTO bookInfo(String isbn)
-        throws IOException, JSONException, ConnectionFailedException, BookNotFoundException, CouldNotReadBookFromAPI {
+        throws IOException, JSONException, ConnectionFailedException, BookNotFoundException, UnableToReadBookFromAPIException {
 
         BookDTO bookDTO;
 
-        URL url = new URL("https://openlibrary.org/api/books?bibkeys=ISBN:"+isbn+"&format=json&jscmd=data");
+        URL url = new URL(String.format("https://openlibrary.org/api/books?bibkeys=ISBN:%s&format=json&jscmd=data", isbn));
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");
 
@@ -64,7 +64,7 @@ public class OpenLibraryService {
         return response.toString();
     }
 
-    private BookDTO createBookDTO(JSONObject jo, String isbn) throws CouldNotReadBookFromAPI {
+    private BookDTO createBookDTO(JSONObject jo, String isbn) throws UnableToReadBookFromAPIException {
         BookDTO bookDTO = new BookDTO();
 
         try {
@@ -77,7 +77,7 @@ public class OpenLibraryService {
             bookDTO.setAuthors(fromJsonArrayToNamesList(jo.getJSONArray("authors"), "name"));
             bookDTO.setImage(jo.getJSONObject("cover").getString("small"));
         }catch (Exception ex){
-            throw new CouldNotReadBookFromAPI(ex.getMessage());
+            throw new UnableToReadBookFromAPIException(ex.getMessage());
         }
 
         return bookDTO;
