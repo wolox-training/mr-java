@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.hamcrest.CoreMatchers.is;
@@ -30,6 +31,7 @@ import wolox.training.models.Book;
 import wolox.training.models.User;
 import wolox.training.repositories.BookRepository;
 import wolox.training.repositories.UserRepository;
+import wolox.training.security.CustomAuthenticationProvider;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(UserController.class)
@@ -43,6 +45,9 @@ public class UserControllerIntegrationTest {
 
     @MockBean
     private BookRepository bookRepository;
+
+    @MockBean
+    private CustomAuthenticationProvider customAuthenticationProvider;
 
     private User user;
     private User otherUser;
@@ -70,7 +75,7 @@ public class UserControllerIntegrationTest {
         bookAlreadyOwnedExReason = "Book Already Owned";
         bookNotInUserListExReason = "This user does not own the book you are trying to delete";
 
-        user = createDefaultUser(1L, "Ana");
+        user = createDefaultUser(1L, "user");
         otherUser = createDefaultUser(2L, "Mariana");
 
         book = createDefaultBook(10L, "Cinderella");
@@ -159,6 +164,7 @@ public class UserControllerIntegrationTest {
     //endregion
 
     //region update user
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenUser_whenUpdateUser_thenReturnJson() throws Exception {
         User changedUser = user;
@@ -167,11 +173,13 @@ public class UserControllerIntegrationTest {
         String stringChangedUser = mapToJsonString(changedUser);
 
         given(userRepository.save(changedUser)).willReturn(changedUser);
+        given(userRepository.findFirstByUsername("user")).willReturn(user);
 
         mvc.perform(put(baseUrl+"{id}", user.getId())
             .contentType(MediaType.APPLICATION_JSON)
             .content(stringChangedUser))
-            .andExpect(status().isOk())
+            //.andExpect(status().isOk())
+            .andExpect(status().reason("a"))
             .andExpect(jsonPath("$.name", is(changedUser.getName())))
             .andExpect(jsonPath("$.username", is(changedUser.getUsername())))
             .andExpect(jsonPath("$.birthdate",  is(changedUser.getBirthdate().toString())))
