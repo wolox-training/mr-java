@@ -1,8 +1,10 @@
 package wolox.training.controllers;
 
+import com.google.gson.JsonObject;
 import com.sun.deploy.net.HttpResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,6 +37,9 @@ public class UserController {
     @Autowired
     BookRepository bookRepository;
 
+    @Autowired
+    PasswordEncoder passwordEncoder;
+
     @GetMapping("/")
     public Iterable<User> findAll(){
         return userRepository.findAll();
@@ -57,7 +62,8 @@ public class UserController {
             throw  new UserIdMismatchException();
         }
 
-        userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+        User actualUser = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+        user.setPassword(actualUser.getPassword());
 
         if(user.anyRequiredAttributeNull()){
             throw new NullAttributesException();
@@ -72,6 +78,19 @@ public class UserController {
         if(user.anyRequiredAttributeNull()){
             throw new NullAttributesException();
         }
+
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+
+        return userRepository.save(user);
+    }
+
+    @PutMapping("/editPass/{userId}")
+    public User updatePassword(@PathVariable Long userId, @RequestBody User u)
+        throws UserNotFoundException {
+        String password = u.getPassword();
+        User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
+        user.setPassword(passwordEncoder.encode(password));
+
         return userRepository.save(user);
     }
 

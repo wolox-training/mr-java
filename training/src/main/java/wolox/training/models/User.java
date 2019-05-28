@@ -13,11 +13,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.validation.constraints.NotNull;
 import org.postgresql.shaded.com.ongres.scram.common.util.Preconditions;
@@ -33,6 +32,9 @@ public class User {
 
     @NotNull
     private String username;
+
+    @NotNull @Column(length = 60)
+    private String password;
 
     @NotNull
     private String name;
@@ -69,6 +71,15 @@ public class User {
 
         Preconditions.checkNotNull(username, "The username cannot be null");
         this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        Preconditions.checkNotNull(password, "The password cannot be null");
+        this.password = password;
     }
 
     public String getName() {

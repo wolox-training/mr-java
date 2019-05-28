@@ -5,6 +5,7 @@ import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -23,7 +24,6 @@ import wolox.training.exceptions.CouldNotCreateBookFromDTO;
 import wolox.training.exceptions.CouldNotReadBookFromAPI;
 import wolox.training.exceptions.NullAttributesException;
 import wolox.training.models.Book;
-import wolox.training.models.BookDTO;
 import wolox.training.repositories.BookRepository;
 import wolox.training.services.OpenLibraryService;
 
