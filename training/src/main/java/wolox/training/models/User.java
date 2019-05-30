@@ -128,7 +128,7 @@ public class User {
     {
         return (username==null || name==null || birthdate == null);
     }
-
+  
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
@@ -146,4 +146,5 @@ public class User {
     public int hashCode() {
         return Objects.hash(id, username, name, birthdate, books);
     }
+
 }

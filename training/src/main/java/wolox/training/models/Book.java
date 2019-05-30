@@ -17,7 +17,7 @@ public class Book {
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "id", updatable = false, nullable = false)
     private Long id;
-
+  
     private String genre;
     @NotNull
     private String author;
