@@ -21,8 +21,9 @@ import wolox.training.exceptions.NullAttributesException;
 import wolox.training.models.Book;
 import wolox.training.repositories.BookRepository;
 
-@RequestMapping("/api/books")
+
 @RestController
+@RequestMapping("/api/books")
 public class BookController {
 
     @Autowired
@@ -62,7 +63,8 @@ public class BookController {
 
     @PutMapping("/{id}")
     public Book updateBook(@RequestBody Book book, @PathVariable Long id) throws BookNotFoundException, BookIdMismatchException, NullAttributesException {
-        if (book.getId() != id) {
+
+        if (!id.equals(book.getId())){
             throw new BookIdMismatchException();
         }
         bookRepository.findById(id).orElseThrow(BookNotFoundException::new);

@@ -1,11 +1,17 @@
 package wolox.training.models;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.fasterxml.jackson.datatype.jsr310.deser.LocalDateDeserializer;
+import com.fasterxml.jackson.datatype.jsr310.ser.LocalDateSerializer;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -31,6 +37,9 @@ public class User {
     @NotNull
     private String name;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern="yyyy-MM-dd")
+    @JsonDeserialize(using = LocalDateDeserializer.class)
+    @JsonSerialize(using = LocalDateSerializer.class)
     @NotNull
     private LocalDate birthdate;
 
@@ -42,10 +51,16 @@ public class User {
 
     }
 
+    public User(String name, String username, LocalDate birthdate){
+        this.setName(name);
+        this.setUsername(username);
+        this.setBirthdate(birthdate);
+    }
+
     public Long getId() {
         return id;
     }
-
+  
     public String getUsername() {
         return username;
     }
@@ -77,7 +92,7 @@ public class User {
 
     @JsonIgnore
     public List<Book> getBooks() {
-        return (List<Book>) Collections.unmodifiableCollection(books);
+        return Collections.unmodifiableList(books);
     }
 
     public void setBooks(List<Book> books) {
@@ -112,6 +127,24 @@ public class User {
     public Boolean anyRequiredAttributeNull()
     {
         return (username==null || name==null || birthdate == null);
+    }
+  
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        User user = (User) o;
+        return Objects.equals(id, user.id) &&
+            Objects.equals(username, user.username) &&
+            Objects.equals(name, user.name) &&
+            Objects.equals(birthdate, user.birthdate) &&
+            Objects.equals(books, user.books);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, username, name, birthdate, books);
     }
 
 }
