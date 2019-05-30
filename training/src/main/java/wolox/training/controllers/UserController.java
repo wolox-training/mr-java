@@ -50,7 +50,6 @@ public class UserController {
         if(user==null){
             throw new UserNotFoundException();
         }
-
         return user;
     }
 
