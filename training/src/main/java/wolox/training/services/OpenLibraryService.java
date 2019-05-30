@@ -1,5 +1,6 @@
 package wolox.training.services;
 
+import com.fasterxml.jackson.databind.util.ArrayIterator;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,7 +38,9 @@ public class OpenLibraryService {
 
         JSONObject jo = new JSONObject(response);
 
-        if(jo.length()<1) {
+
+
+        if(jo.keys().hasNext()) {
             throw new BookNotFoundException();
         }
 
