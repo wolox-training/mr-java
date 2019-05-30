@@ -95,6 +95,23 @@ public class UserControllerIntegrationTest {
 
     }
 
+
+    //region get username
+    @WithMockUser(username = "user", password = "1234")
+    @Test
+    public void whenGetUsername_thenReturnUsername() throws Exception {
+        given(userRepository.findFirstByUsername("user")).willReturn(user);
+
+        mvc.perform(get(baseUrl+"username")
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.name", is(user.getName())))
+            .andExpect(jsonPath("$.username", is(user.getUsername())))
+            .andExpect(jsonPath("$.birthdate", is(user.getBirthdate().toString())))
+            .andExpect(jsonPath("$.books", hasSize(user.getBooks().size())));
+    }
+    //endregion
+
     //region get all users
     @WithMockUser(username = "user", password = "1234")
     @Test
@@ -186,7 +203,6 @@ public class UserControllerIntegrationTest {
         String stringChangedUser = mapToJsonString(changedUser);
 
         given(userRepository.save(changedUser)).willReturn(changedUser);
-        given(userRepository.findFirstByUsername("user")).willReturn(user);
 
         mvc.perform(put(baseUrl+"{id}", user.getId())
             .contentType(MediaType.APPLICATION_JSON)
