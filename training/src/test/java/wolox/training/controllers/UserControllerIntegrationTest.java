@@ -95,6 +95,18 @@ public class UserControllerIntegrationTest {
 
     }
 
+
+    //region get username
+    @WithMockUser(username = "user", password = "1234")
+    @Test
+    public void whenGetUsername_thenReturnUsername() throws Exception {
+        mvc.perform(get(baseUrl+"username")
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.username", is("user")));
+    }
+    //endregion
+
     //region get all users
     @WithMockUser(username = "user", password = "1234")
     @Test
