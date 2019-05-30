@@ -23,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.hamcrest.CoreMatchers.is;
@@ -34,6 +35,7 @@ import wolox.training.exceptions.BookNotFoundException;
 import wolox.training.models.Book;
 import wolox.training.models.BookDTO;
 import wolox.training.repositories.BookRepository;
+import wolox.training.security.CustomAuthenticationProvider;
 import wolox.training.services.OpenLibraryService;
 
 
@@ -49,6 +51,9 @@ public class BookControllerIntegrationTest {
 
     @MockBean
     private OpenLibraryService openLibraryService;
+
+    @MockBean
+    private CustomAuthenticationProvider customAuthenticationProvider;
 
     private String baseUrl;
     private String bookNotFoundExReason;
@@ -100,7 +105,7 @@ public class BookControllerIntegrationTest {
     }
 
     //region get all books tests
-
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void whenGetBooks_thenReturnJsonArray() throws Exception{
 
@@ -112,10 +117,16 @@ public class BookControllerIntegrationTest {
             .andExpect(jsonPath("$[1].title", is(otherBook.getTitle())));
     }
 
+    @Test
+    public void givenRequestOnPrivateService_shouldFailWith401() throws Exception {
+        mvc.perform(get(baseUrl)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isUnauthorized());
+    }
     //endregion
 
     //region get one book tests
-
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenId_whenGetBook_thenReturnJson() throws Exception {
 
@@ -125,6 +136,7 @@ public class BookControllerIntegrationTest {
             .andExpect(jsonPath("$.title", is(book.getTitle())));
     }
 
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenNonExistingId_whenGetBook_thenThrowNotFound() throws Exception {
 
@@ -134,6 +146,7 @@ public class BookControllerIntegrationTest {
             .andExpect(status().reason(bookNotFoundExReason));
     }
 
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenInBdIsbn_whenFindByIsbn_thenReturnJson() throws Exception {
         given(bookRepository.findByIsbn(book.getIsbn())).willReturn(Optional.ofNullable(book));
@@ -146,6 +159,7 @@ public class BookControllerIntegrationTest {
             .andExpect(jsonPath("publisher", is(book.getPublisher())));
     }
 
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenInApiIsbn_whenFindByIsbn_thenReturnJson() throws Exception {
 
@@ -173,6 +187,7 @@ public class BookControllerIntegrationTest {
     /**
      * Complicated attributes makes reference to an entity with a string date that contains more than the year or one with more than one authors or publishers
      */
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenInApiIsbnWithManyAuthors_whenFindByIsbn_thenReturnJson()
         throws Exception {
@@ -206,6 +221,7 @@ public class BookControllerIntegrationTest {
             .andExpect(jsonPath("isbn", is(newBook.getIsbn())));
     }
 
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenNonExistingIsbn_whenFindByIsbn_thenThrowBookNotFound() throws Exception {
         String nonExistingIsbn = "000";
@@ -218,7 +234,6 @@ public class BookControllerIntegrationTest {
             .andExpect(status().isNotFound())
             .andExpect(status().reason(bookNotFoundExReason));
     }
-
     //endregion
 
     //region create book tests
@@ -284,7 +299,7 @@ public class BookControllerIntegrationTest {
     //endregion
 
     //region update book tests
-
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenId_whenUpdateBook_thenReturnJson() throws Exception{
         Book changedBook = book;
@@ -308,7 +323,7 @@ public class BookControllerIntegrationTest {
             .andExpect(jsonPath("$.isbn", is(changedBook.getIsbn())))
             .andExpect(jsonPath("$.image", is(changedBook.getImage())));
     }
-
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenNullGenre_whenUpdateBook_thenReturnJson() throws Exception{
         Book changedBook = book;
@@ -333,6 +348,7 @@ public class BookControllerIntegrationTest {
             .andExpect(jsonPath("$.image", is(changedBook.getImage())));
     }
 
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenNonExistingId_whenUpdateBook_thenThrowBookNotFound() throws Exception{
         Book changedBook = createDefaultBook(nonExistingId, "Harry Potter and the Philosopher's Stone");
@@ -346,6 +362,7 @@ public class BookControllerIntegrationTest {
             .andExpect(status().reason(bookNotFoundExReason));
     }
 
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenWrongId_whenUpdateBook_thenThrowIdMismatch() throws Exception{
         Book changedBook = createDefaultBook(2L, "Harry Potter and the Philosopher's Stone");
@@ -359,6 +376,7 @@ public class BookControllerIntegrationTest {
             .andExpect(status().reason(idMismatchExReason));
     }
 
+    @WithMockUser(username = "user", password = "1234")
     @Test(expected = IllegalArgumentException.class)
     public void givenNullAttribute_whenUpdateBook_thenThrowNullArguments() throws Exception{
         Book changedBook = book;
@@ -375,12 +393,14 @@ public class BookControllerIntegrationTest {
     //endregion
 
     //region delete book tests
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenId_whenDeleteBook() throws Exception{
         mvc.perform(delete(baseUrl+"{id}",book.getId()))
             .andExpect(status().isOk());
     }
 
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenNonExistingId_whenDeleteBook_thenThrowNotFound() throws Exception{
         mvc.perform(delete(baseUrl+"{id}", nonExistingId))
@@ -388,7 +408,5 @@ public class BookControllerIntegrationTest {
             .andExpect(status().reason(bookNotFoundExReason));
     }
     //endregion
-
-
 
 }

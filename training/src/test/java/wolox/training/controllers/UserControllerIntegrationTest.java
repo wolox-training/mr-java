@@ -25,14 +25,10 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 
-import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.hamcrest.CoreMatchers.is;
 import static wolox.training.TestUtilities.mapToJsonString;
-
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.context.WebApplicationContext;
 import wolox.training.models.Book;
 import wolox.training.models.User;
 import wolox.training.repositories.BookRepository;
@@ -44,9 +40,6 @@ import wolox.training.security.CustomAuthenticationProvider;
 public class UserControllerIntegrationTest {
 
     @Autowired
-    private WebApplicationContext context;
-
-    @Autowired
     private MockMvc mvc;
 
     @MockBean
@@ -55,6 +48,8 @@ public class UserControllerIntegrationTest {
     @MockBean
     private BookRepository bookRepository;
 
+    @MockBean
+    private CustomAuthenticationProvider authProvider;
 
     private User user;
     private User otherUser;
@@ -72,10 +67,6 @@ public class UserControllerIntegrationTest {
 
     @Before
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
-        mvc = MockMvcBuilders.webAppContextSetup(context)
-            .apply(SecurityMockMvcConfigurers.springSecurity())
-            .build();
-
 
         baseUrl = "/api/users/";
         nonExistingId = 0L;
@@ -105,6 +96,7 @@ public class UserControllerIntegrationTest {
     }
 
     //region get all users
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void whenGetUsers_thenReturnJsonArray() throws Exception {
         mvc.perform(get(baseUrl)
@@ -114,16 +106,16 @@ public class UserControllerIntegrationTest {
             .andExpect(jsonPath("$[0].name", is(user.getName())))
             .andExpect(jsonPath("$[1].name", is(otherUser.getName())));
     }
-    //endregion
 
-    //region get one user
     @Test
     public void givenRequestOnPrivateService_shouldFailWith401() throws Exception {
-        mvc.perform(get(baseUrl+"{id}", user.getId())
+        mvc.perform(get(baseUrl)
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isUnauthorized());
     }
+    //endregion
 
+    //region get one user
     @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenId_whenGetUser_thenReturnJson() throws Exception {
@@ -139,6 +131,7 @@ public class UserControllerIntegrationTest {
             .andExpect(jsonPath("$.books[2].title", is(user.getBooks().get(2).getTitle())));
     }
 
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenNonExistingId_whenGetUser_thenThrowNotFound() throws Exception {
         mvc.perform(get(baseUrl+"{id}", nonExistingId)
@@ -206,6 +199,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
+    @WithMockUser(username = "user", password = "1234")
     public void givenWrongId_whenUpdateUser_thenThrowIdMismatch() throws Exception {
         User changedUser = createDefaultUser(4L, "Monica");
 
@@ -219,6 +213,7 @@ public class UserControllerIntegrationTest {
     }
 
     @Test
+    @WithMockUser(username = "user", password = "1234")
     public void givenNonExistingId_whenUpdateUser_thenThrowNotFound() throws Exception {
         User changedUser = createDefaultUser(nonExistingId, "Marta");
 
@@ -231,6 +226,7 @@ public class UserControllerIntegrationTest {
             .andExpect(status().reason(userNotFoundExReason));
     }
 
+    @WithMockUser(username = "user", password = "1234")
     @Test(expected = IllegalArgumentException.class)
     public void givenNullAttribute_whenUpdateUser_thenThrowNullAttribute() throws Exception {
         User changedUser = user;
@@ -247,12 +243,14 @@ public class UserControllerIntegrationTest {
     //endregion
 
     //region delete user
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenId_whenDeleteUser() throws Exception {
         mvc.perform(delete(baseUrl+"{id}",user.getId()))
             .andExpect(status().isOk());
     }
 
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenNonExistingId_whenDeleteUser_thenThrowNotFound() throws Exception{
         mvc.perform(delete(baseUrl+"{id}", nonExistingId))
@@ -262,6 +260,7 @@ public class UserControllerIntegrationTest {
     //endregion
 
     //region add book
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenBookId_givenUserId_whenAddBookToUser_thenReturnJson() throws Exception {
         User changedUser = createDefaultUser(user.getId(), user.getName());
@@ -275,6 +274,7 @@ public class UserControllerIntegrationTest {
             .andExpect(jsonPath("$.books", hasSize(changedUser.getBooks().size())));
     }
 
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenNonExistingBookId_givenUserId_whenAddBookToUser_thenThrowBookNotFound() throws Exception {
         mvc.perform(put(baseUrl+"{userId}/{bookId}", user.getId(), nonExistingId)
@@ -283,6 +283,7 @@ public class UserControllerIntegrationTest {
             .andExpect(status().reason(bookNotFoundExReason));
     }
 
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenBookId_givenNonExistingUserId_whenAddBookToUser_thenThrowBookNotFound() throws Exception {
         mvc.perform(put(baseUrl+"{userId}/{bookId}", nonExistingId, book.getId())
@@ -291,6 +292,7 @@ public class UserControllerIntegrationTest {
             .andExpect(status().reason(userNotFoundExReason));
     }
 
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenAlreadyOwnedBookId_givenUserId_whenAddBookToUser_thenThrowAlreadyOwned() throws Exception {
         Book alreadyOwnedBook = user.getBooks().get(0);
@@ -305,6 +307,7 @@ public class UserControllerIntegrationTest {
     //endregion
 
     //region remove book
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenBookId_givenUserId_whenRemoveBookFromUser_thenReturnJson() throws Exception {
         Book removeBook = user.getBooks().get(0);
@@ -321,6 +324,7 @@ public class UserControllerIntegrationTest {
             .andExpect(jsonPath("$.books", hasSize(changedUser.getBooks().size())));
     }
 
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenNotInUserBookListBookId_givenUserId_whenRemoveBookFromUser_thenThrowBookNotFound() throws Exception{
         Book removeBook = user.getBooks().get(0);
@@ -337,6 +341,7 @@ public class UserControllerIntegrationTest {
             .andExpect(status().reason(bookNotInUserListExReason));
     }
 
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenNonExistingBookId_givenUserId_whenRemoveBookFromUser_thenThrowBookNotFound() throws Exception{
         mvc.perform(delete(baseUrl+"{userId}/{bookId}", user.getId(), nonExistingId)
@@ -345,6 +350,7 @@ public class UserControllerIntegrationTest {
             .andExpect(status().reason(bookNotFoundExReason));
     }
 
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenBookId_givenNonExistingUserId_whenRemoveBookFromUser_thenThrowBookNotFound() throws Exception{
         mvc.perform(delete(baseUrl+"{userId}/{bookId}", nonExistingId, book.getId())

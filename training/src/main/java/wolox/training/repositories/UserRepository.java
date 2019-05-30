@@ -8,7 +8,6 @@ import wolox.training.models.User;
 @Component
 public interface UserRepository extends CrudRepository<User, Long> {
 
-    //public Optional<User> findFirstByUsername(String username);
-
     public User findFirstByUsername(String username);
+
 }
