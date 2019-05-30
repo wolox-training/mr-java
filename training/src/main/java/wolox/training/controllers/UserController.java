@@ -1,11 +1,7 @@
 package wolox.training.controllers;
 
-import com.google.gson.JsonObject;
-import com.sun.deploy.net.HttpResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,6 +15,7 @@ import org.springframework.web.server.ResponseStatusException;
 import wolox.training.exceptions.BookAlreadyOwnedException;
 import wolox.training.exceptions.BookNotFoundException;
 import wolox.training.exceptions.NullAttributesException;
+import wolox.training.exceptions.OldPasswordMistatchException;
 import wolox.training.exceptions.UserIdMismatchException;
 import wolox.training.exceptions.UserNotFoundException;
 import wolox.training.models.Book;
@@ -33,12 +30,8 @@ public class UserController {
     @Autowired
     UserRepository userRepository;
 
-
     @Autowired
     BookRepository bookRepository;
-
-    @Autowired
-    PasswordEncoder passwordEncoder;
 
     @GetMapping("/")
     public Iterable<User> findAll(){
@@ -62,12 +55,15 @@ public class UserController {
             throw  new UserIdMismatchException();
         }
 
-        User actualUser = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
-        user.setPassword(actualUser.getPassword());
-
         if(user.anyRequiredAttributeNull()){
             throw new NullAttributesException();
         }
+
+        User userToSave = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+        userToSave.setName(user.getName());
+        userToSave.setUsername(user.getUsername());
+        userToSave.setBirthdate(user.getBirthdate());
+        userToSave.setBooks(user.getBooks());
 
         return userRepository.save(user);
     }
@@ -78,18 +74,18 @@ public class UserController {
         if(user.anyRequiredAttributeNull()){
             throw new NullAttributesException();
         }
-
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-
         return userRepository.save(user);
     }
 
     @PutMapping("/editPass/{userId}")
-    public User updatePassword(@PathVariable Long userId, @RequestBody User u)
-        throws UserNotFoundException {
-        String password = u.getPassword();
+    public User updatePassword(@PathVariable Long userId, @RequestBody String oldPass, @RequestBody String newPass)
+        throws UserNotFoundException, OldPasswordMistatchException {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-        user.setPassword(passwordEncoder.encode(password));
+        if(!oldPass.equals(user.getPassword())) {
+            throw new OldPasswordMistatchException();
+        }
+
+        user.setPassword(newPass);
 
         return userRepository.save(user);
     }

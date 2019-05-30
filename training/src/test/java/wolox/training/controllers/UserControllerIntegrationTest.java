@@ -242,6 +242,29 @@ public class UserControllerIntegrationTest {
     }
     //endregion
 
+    //region update password
+    @WithMockUser(username = "user", password = "1234")
+    @Test
+    public void givenOldAndNewPass_whenUpdatePassword_thenReturnJson() throws Exception {
+        User changedUser = user;
+        changedUser.setUsername("newbie");
+
+        String stringChangedUser = mapToJsonString(changedUser);
+
+        given(userRepository.save(changedUser)).willReturn(changedUser);
+        given(userRepository.findFirstByUsername("user")).willReturn(user);
+
+        mvc.perform(put(baseUrl+"{id}", user.getId())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(stringChangedUser))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.name", is(changedUser.getName())))
+            .andExpect(jsonPath("$.username", is(changedUser.getUsername())))
+            .andExpect(jsonPath("$.birthdate",  is(changedUser.getBirthdate().toString())))
+            .andExpect(jsonPath("$.books", hasSize(changedUser.getBooks().size())));
+    }
+    //endregion
+
     //region delete user
     @WithMockUser(username = "user", password = "1234")
     @Test
