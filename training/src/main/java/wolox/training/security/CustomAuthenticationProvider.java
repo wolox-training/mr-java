@@ -9,6 +9,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import wolox.training.models.User;
 import wolox.training.repositories.UserRepository;
@@ -20,6 +21,9 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     @Override
     public Authentication authenticate(Authentication authentication)
         throws AuthenticationException {
@@ -29,7 +33,7 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
         User user = userRepository.findFirstByUsername(username);
 
-        if (user!=null && BCrypt.checkpw(password, user.getPassword())) {
+        if (user!=null && passwordEncoder.matches(password, user.getPassword())) {
 
             return new UsernamePasswordAuthenticationToken(
                 username, password, new ArrayList<>());

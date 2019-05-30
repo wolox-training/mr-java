@@ -2,6 +2,7 @@ package wolox.training.controllers;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.BDDMockito.given;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -10,6 +11,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static wolox.training.TestUtilities.createDefaultBook;
 import static wolox.training.TestUtilities.createDefaultUser;
+import org.springframework.security.test.context.support.WithMockUser;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,12 +24,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.hamcrest.CoreMatchers.is;
 import static wolox.training.TestUtilities.mapToJsonString;
 
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
+import org.springframework.web.context.WebApplicationContext;
 import wolox.training.models.Book;
 import wolox.training.models.User;
 import wolox.training.repositories.BookRepository;
@@ -38,6 +44,9 @@ import wolox.training.security.CustomAuthenticationProvider;
 public class UserControllerIntegrationTest {
 
     @Autowired
+    private WebApplicationContext context;
+
+    @Autowired
     private MockMvc mvc;
 
     @MockBean
@@ -46,8 +55,6 @@ public class UserControllerIntegrationTest {
     @MockBean
     private BookRepository bookRepository;
 
-    @MockBean
-    private CustomAuthenticationProvider customAuthenticationProvider;
 
     private User user;
     private User otherUser;
@@ -65,6 +72,11 @@ public class UserControllerIntegrationTest {
 
     @Before
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
+        mvc = MockMvcBuilders.webAppContextSetup(context)
+            .apply(SecurityMockMvcConfigurers.springSecurity())
+            .build();
+
+
         baseUrl = "/api/users/";
         nonExistingId = 0L;
 
@@ -105,6 +117,14 @@ public class UserControllerIntegrationTest {
     //endregion
 
     //region get one user
+    @Test
+    public void givenRequestOnPrivateService_shouldFailWith401() throws Exception {
+        mvc.perform(get(baseUrl+"{id}", user.getId())
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isUnauthorized());
+    }
+
+    @WithMockUser(username = "user", password = "1234")
     @Test
     public void givenId_whenGetUser_thenReturnJson() throws Exception {
         mvc.perform(get(baseUrl+"{id}", user.getId())
@@ -178,8 +198,7 @@ public class UserControllerIntegrationTest {
         mvc.perform(put(baseUrl+"{id}", user.getId())
             .contentType(MediaType.APPLICATION_JSON)
             .content(stringChangedUser))
-            //.andExpect(status().isOk())
-            .andExpect(status().reason("a"))
+            .andExpect(status().isOk())
             .andExpect(jsonPath("$.name", is(changedUser.getName())))
             .andExpect(jsonPath("$.username", is(changedUser.getUsername())))
             .andExpect(jsonPath("$.birthdate",  is(changedUser.getBirthdate().toString())))
