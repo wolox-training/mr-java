@@ -4,7 +4,6 @@ import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -29,7 +28,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.hamcrest.CoreMatchers.is;
 import static wolox.training.TestUtilities.createDefaultBook;
 import static wolox.training.TestUtilities.mapToJsonString;
-import static wolox.training.TestUtilities.setBookId;
 
 import wolox.training.exceptions.BookNotFoundException;
 import wolox.training.models.Book;

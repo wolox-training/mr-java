@@ -2,7 +2,6 @@ package wolox.training.controllers;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -12,7 +11,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static wolox.training.TestUtilities.createDefaultBook;
 import static wolox.training.TestUtilities.createDefaultUser;
 
-import com.google.gson.JsonObject;
 import org.json.JSONObject;
 import org.springframework.security.test.context.support.WithMockUser;
 
@@ -257,9 +255,9 @@ public class UserControllerIntegrationTest {
         User changedUser = createDefaultUser(otherUser.getId(), otherUser.getUsername());
         changedUser.setPassword(newPass);
 
-        JsonObject jo = new JsonObject();
-        jo.addProperty("oldPassword", oldPass);
-        jo.addProperty("newPassword", newPass);
+        JSONObject jo = new JSONObject();
+        jo.put("oldPassword", oldPass);
+        jo.put("newPassword", newPass);
 
         String jsonString = jo.toString();
 
@@ -284,9 +282,9 @@ public class UserControllerIntegrationTest {
 
         otherUser.setPassword("1234");
 
-        JsonObject jo = new JsonObject();
-        jo.addProperty("oldPassword", wrongOldPass);
-        jo.addProperty("newPassword", newPass);
+        JSONObject jo = new JSONObject();
+        jo.put("oldPassword", wrongOldPass);
+        jo.put("newPassword", newPass);
 
         String jsonString = jo.toString();
 
