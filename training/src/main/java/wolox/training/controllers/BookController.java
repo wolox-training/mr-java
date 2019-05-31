@@ -1,11 +1,13 @@
 package wolox.training.controllers;
 
 import java.io.IOException;
+import java.time.format.DateTimeParseException;
+import java.util.List;
 import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import wolox.training.exceptions.BookIdMismatchException;
 import wolox.training.exceptions.BookNotFoundException;
 import wolox.training.exceptions.ConnectionFailedException;
@@ -94,6 +97,21 @@ public class BookController {
         }
 
         return bookRepository.save(book);
+    }
+
+    @GetMapping("/byPublisherAndByGenderAndByYear")
+    public List<Book> getBooksByPublisherAndByGenderAndByYear(@RequestBody String stringParams)
+        throws JSONException {
+        JSONObject params = new JSONObject(stringParams);
+
+        try {
+            String publisher = params.getString("publisher");
+            String genre = params.getString("genre");
+            String year = params.getString("year");
+            return bookRepository.findByPublisherAndGenreAndYear(publisher, genre, year);
+        } catch (JSONException ex){
+            throw new ResponseStatusException(HttpStatus.CONFLICT, ex.getMessage(), ex);
+        }
     }
 }
 

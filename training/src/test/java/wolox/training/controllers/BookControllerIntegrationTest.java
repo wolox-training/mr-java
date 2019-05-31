@@ -13,9 +13,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
+import com.google.gson.JsonObject;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,12 +31,14 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.hamcrest.CoreMatchers.is;
 import static wolox.training.TestUtilities.createDefaultBook;
+import static wolox.training.TestUtilities.createDefaultUser;
 import static wolox.training.TestUtilities.mapToJsonString;
 import static wolox.training.TestUtilities.setBookId;
 
 import wolox.training.exceptions.BookNotFoundException;
 import wolox.training.models.Book;
 import wolox.training.models.BookDTO;
+import wolox.training.models.User;
 import wolox.training.repositories.BookRepository;
 import wolox.training.security.CustomAuthenticationProvider;
 import wolox.training.services.OpenLibraryService;
@@ -408,5 +413,61 @@ public class BookControllerIntegrationTest {
             .andExpect(status().reason(bookNotFoundExReason));
     }
     //endregion
+
+    //region find book by publisher, gender and year
+    @WithMockUser(username = "user", password = "1234")
+    @Test
+    public void givenPubilsherGenreAndYear_whenFindByPublisherAndByGenderAndByYear_thenReturnJsonArray()
+        throws Exception {
+        Book specialBook = createDefaultBook(3L, "Great Title");
+        specialBook.setGenre("Novel");
+        specialBook.setPublisher("Sample Publisher");
+        specialBook.setYear("1995");
+
+        JsonObject jo = new JsonObject();
+        jo.addProperty("genre", specialBook.getGenre());
+        jo.addProperty("publisher", specialBook.getPublisher());
+        jo.addProperty("year", specialBook.getYear());
+
+        String jsonString = jo.toString();
+
+        List<Book> foundBooks = new ArrayList<>();
+        foundBooks.add(specialBook);
+        given(bookRepository.findByPublisherAndGenreAndYear(specialBook.getPublisher(), specialBook.getGenre(),
+            specialBook.getYear())).willReturn(foundBooks);
+
+        mvc.perform(get(baseUrl+"byPublisherAndByGenderAndByYear")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonString))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", Matchers.hasSize(foundBooks.size())))
+            .andExpect(jsonPath("$[0].publisher", is(specialBook.getPublisher())))
+            .andExpect(jsonPath("$[0].genre", is(specialBook.getGenre())))
+            .andExpect(jsonPath("$[0].year", is(specialBook.getYear())));
+    }
+
+    @WithMockUser(username = "user", password = "1234")
+    @Test
+    public void givenGenreAndPubilsherButNoYear_whenFindByPublisherAndByGenderAndByYear_thenThrowJsonException()
+        throws Exception {
+        Book specialBook = createDefaultBook(3L, "Great Title");
+        specialBook.setGenre("Novel");
+        specialBook.setPublisher("Sample Publisher");
+        specialBook.setYear("1995");
+
+        JsonObject jo = new JsonObject();
+        jo.addProperty("genre", specialBook.getGenre());
+        jo.addProperty("publisher", specialBook.getPublisher());
+        String jsonString = jo.toString();
+
+
+        mvc.perform(get(baseUrl+"byPublisherAndByGenderAndByYear")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonString))
+            .andExpect(status().isConflict())
+            .andExpect(status().reason("No value for year"));
+    }
+
+    //enregion
 
 }
