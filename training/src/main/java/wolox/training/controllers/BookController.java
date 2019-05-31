@@ -99,19 +99,11 @@ public class BookController {
         return bookRepository.save(book);
     }
 
-    @GetMapping("/byPublisherAndByGenderAndByYear")
-    public List<Book> getBooksByPublisherAndByGenderAndByYear(@RequestBody String stringParams)
-        throws JSONException {
-        JSONObject params = new JSONObject(stringParams);
+    @GetMapping("/byPublisherAndByGenreAndByYear")
+    public List<Book> getBooksByPublisherAndByGenreAndByYear(@RequestParam(name="publisher") String publisher, @RequestParam(name="genre") String genre,
+        @RequestParam(name="year") String year){
 
-        try {
-            String publisher = params.getString("publisher");
-            String genre = params.getString("genre");
-            String year = params.getString("year");
-            return bookRepository.findByPublisherAndGenreAndYear(publisher, genre, year);
-        } catch (JSONException ex){
-            throw new ResponseStatusException(HttpStatus.CONFLICT, ex.getMessage(), ex);
-        }
+        return bookRepository.findByPublisherAndGenreAndYear(publisher, genre, year);
     }
 }
 
