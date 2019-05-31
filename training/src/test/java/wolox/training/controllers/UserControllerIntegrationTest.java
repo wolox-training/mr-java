@@ -110,6 +110,15 @@ public class UserControllerIntegrationTest {
             .andExpect(jsonPath("$.birthdate", is(user.getBirthdate().toString())))
             .andExpect(jsonPath("$.books", hasSize(user.getBooks().size())));
     }
+
+    @Test
+    public void notLoggedIn_whenGetUsername_thenReturnUnauthorized() throws Exception {
+        given(userRepository.findFirstByUsername("user")).willReturn(user);
+
+        mvc.perform(get(baseUrl+"username")
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isUnauthorized());
+    }
     //endregion
 
     //region get all users

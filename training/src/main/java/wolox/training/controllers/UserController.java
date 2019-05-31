@@ -47,9 +47,6 @@ public class UserController {
     public User currentUserName(Authentication authentication) throws UserNotFoundException {
         User user = userRepository.findFirstByUsername(authentication.getName());
 
-        if(user==null){
-            throw new UserNotFoundException();
-        }
         return user;
     }
 
