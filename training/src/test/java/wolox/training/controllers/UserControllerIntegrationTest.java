@@ -3,7 +3,6 @@ package wolox.training.controllers;
 import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -12,12 +11,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static wolox.training.TestUtilities.createDefaultBook;
 import static wolox.training.TestUtilities.createDefaultUser;
-
-import com.google.gson.JsonObject;
 import java.time.LocalDate;
+import org.json.JSONObject;
 import org.springframework.security.test.context.support.WithMockUser;
-
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -28,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.hamcrest.CoreMatchers.is;
@@ -113,6 +108,15 @@ public class UserControllerIntegrationTest {
             .andExpect(jsonPath("$.username", is(user.getUsername())))
             .andExpect(jsonPath("$.birthdate", is(user.getBirthdate().toString())))
             .andExpect(jsonPath("$.books", hasSize(user.getBooks().size())));
+    }
+
+    @Test
+    public void notLoggedIn_whenGetUsername_thenReturnUnauthorized() throws Exception {
+        given(userRepository.findFirstByUsername("user")).willReturn(user);
+
+        mvc.perform(get(baseUrl+"username")
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isUnauthorized());
     }
     //endregion
 
@@ -259,6 +263,61 @@ public class UserControllerIntegrationTest {
             .content(stringChangedBook))
             .andExpect(status().isBadRequest())
             .andExpect(status().reason(nullAttributesExReason));
+    }
+    //endregion
+
+    //region update password
+    @WithMockUser(username = "user", password = "1234")
+    @Test
+    public void givenOldAndNewPass_whenUpdatePassword_thenReturnJson() throws Exception {
+        String oldPass = "1234";
+        String newPass = "1111";
+
+        otherUser.setPassword(oldPass);
+
+        User changedUser = createDefaultUser(otherUser.getId(), otherUser.getUsername());
+        changedUser.setPassword(newPass);
+
+        JSONObject jo = new JSONObject();
+        jo.put("oldPassword", oldPass);
+        jo.put("newPassword", newPass);
+
+        String jsonString = jo.toString();
+
+        given(userRepository.findById(otherUser.getId())).willReturn(Optional.ofNullable(otherUser));
+        given(userRepository.save(changedUser)).willReturn(changedUser);
+
+        mvc.perform(put(baseUrl+"editPass/{userId}", otherUser.getId())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonString))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.name", is(changedUser.getName())))
+            .andExpect(jsonPath("$.username", is(changedUser.getUsername())))
+            .andExpect(jsonPath("$.birthdate",  is(changedUser.getBirthdate().toString())))
+            .andExpect(jsonPath("$.books", hasSize(changedUser.getBooks().size())));
+    }
+
+    @WithMockUser(username = "user", password = "1234")
+    @Test
+    public void givenWongOldPass_whenUpdatePassword_thenThrowOldPasswordMismatch() throws Exception {
+        String wrongOldPass = "2222";
+        String newPass = "1111";
+
+        otherUser.setPassword("1234");
+
+        JSONObject jo = new JSONObject();
+        jo.put("oldPassword", wrongOldPass);
+        jo.put("newPassword", newPass);
+
+        String jsonString = jo.toString();
+
+        given(userRepository.findById(otherUser.getId())).willReturn(Optional.ofNullable(otherUser));
+
+        mvc.perform(put(baseUrl+"editPass/{userId}", otherUser.getId())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonString))
+            .andExpect(status().isConflict())
+            .andExpect(status().reason("Old Password Mismatch"));
     }
     //endregion
 
@@ -415,9 +474,9 @@ public class UserControllerIntegrationTest {
         String startDate = "1950-05-05";
         String finalDate = "19770-05-05";
 
-        JsonObject jo = new JsonObject();
-        jo.addProperty("startDate", startDate);
-        jo.addProperty("finalDate",finalDate);
+       JSONObject jo = new JSONObject();
+        jo.put("startDate", startDate);
+        jo.put("finalDate",finalDate);
 
         String jsonString = jo.toString();
 

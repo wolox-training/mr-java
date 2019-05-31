@@ -52,8 +52,7 @@ public abstract class TestUtilities {
         throws IllegalAccessException, NoSuchFieldException {
 
         LocalDate birthdate =  LocalDate.of(1990, 05, 9);
-        User user = new User("default", username, birthdate);
-        user.setPassword(encoder().encode("1234"));
+        User user = new User("default", username, birthdate, "1234");
 
         user.setBooks(generateBooks());
 

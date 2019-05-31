@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,6 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 import wolox.training.exceptions.BookAlreadyOwnedException;
 import wolox.training.exceptions.BookNotFoundException;
 import wolox.training.exceptions.NullAttributesException;
+import wolox.training.exceptions.OldPasswordMistatchException;
 import wolox.training.exceptions.UserIdMismatchException;
 import wolox.training.exceptions.UserNotFoundException;
 import wolox.training.models.Book;
@@ -37,20 +39,16 @@ public class UserController {
     @Autowired
     UserRepository userRepository;
 
-
     @Autowired
     BookRepository bookRepository;
 
-    @Autowired
+  @Autowired
     PasswordEncoder passwordEncoder;
 
     @GetMapping("/username")
     public User currentUserName(Authentication authentication) throws UserNotFoundException {
         User user = userRepository.findFirstByUsername(authentication.getName());
 
-        if(user==null){
-            throw new UserNotFoundException();
-        }
         return user;
     }
 
@@ -76,34 +74,43 @@ public class UserController {
             throw  new UserIdMismatchException();
         }
 
-        User actualUser = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
-        user.setPassword(actualUser.getPassword());
-
         if(user.anyRequiredAttributeNull()){
             throw new NullAttributesException();
         }
 
+        User userToSave = userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+        userToSave.setName(user.getName());
+        userToSave.setUsername(user.getUsername());
+        userToSave.setBirthdate(user.getBirthdate());
+        userToSave.setBooks(user.getBooks());
+
         return userRepository.save(user);
     }
-
+  
     @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
     public User create(@RequestBody User user) throws NullAttributesException {
         if(user.anyRequiredAttributeNull()){
             throw new NullAttributesException();
         }
-
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-
         return userRepository.save(user);
     }
 
     @PutMapping("/editPass/{userId}")
-    public User updatePassword(@PathVariable Long userId, @RequestBody User u)
-        throws UserNotFoundException {
-        String password = u.getPassword();
+    public User updatePassword(@PathVariable Long userId, @RequestBody String stringParams)
+        throws UserNotFoundException, OldPasswordMistatchException, JSONException {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-        user.setPassword(passwordEncoder.encode(password));
+
+        JSONObject params = new JSONObject(stringParams);
+
+        String oldPass = params.getString("oldPassword");
+        String newPass = params.getString("newPassword");
+
+        if(!BCrypt.checkpw(oldPass,user.getPassword())) {
+            throw new OldPasswordMistatchException();
+        }
+
+        user.setPassword(newPass);
 
         return userRepository.save(user);
     }
@@ -134,7 +141,7 @@ public class UserController {
         return userRepository.save(user);
     }
 
-    @GetMapping("/birthdateBetweenAndNameContains")
+  @GetMapping("/birthdateBetweenAndNameContains")
     public List<User> getUsersByBirthdateBetweenAndNameContains(@RequestParam(name="startDate") String startDate, @RequestParam(name="finalDate") String finalDate,
         @RequestParam(name="characters") String characters)  {
         try {
@@ -144,5 +151,4 @@ public class UserController {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Invalid date", ex);
         }
     }
-
 }

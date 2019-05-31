@@ -4,12 +4,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(code = HttpStatus.CONFLICT, reason = "Could not create book from DTO")
-public class CouldNotCreateBookFromDTO extends Exception{
-    public CouldNotCreateBookFromDTO(){
+public class UnableToCreateBookFromDTOException extends Exception{
+    public UnableToCreateBookFromDTOException(){
         super();
     }
 
-    public CouldNotCreateBookFromDTO(String message)
+    public UnableToCreateBookFromDTOException(String message)
     {
         super(message);
     }

@@ -41,8 +41,8 @@ public class UserRepositoryIntegrationTest {
     public void setUp() throws BookAlreadyOwnedException {
         nonExistingId = 0L;
 
-        user = new User("Nick", "Nick27", LocalDate.of(1999,3,27));
-        otherUser = new User("Jennifer", "Jenny1995", LocalDate.of(1995,7,9));
+        user = new User("Nick", "Nick27", LocalDate.of(1999,3,27), "1234");
+        otherUser = new User("Jennifer", "Jenny1995", LocalDate.of(1995,7,9), "1234");
 
         book =  new Book("J. K. Rowling", "image.png", "Harry Potter and the Philosopher's Stone",
             "-", "Bloomsbury Publishing", "1997", 223, "9780747532743", "Fantasy");
@@ -77,7 +77,7 @@ public class UserRepositoryIntegrationTest {
     //region save user
     @Test
     public void whenSaveUser_thenReturnUser(){
-        User newUser = new User("Mike", "Newbie", LocalDate.of(1990, 5, 3));
+        User newUser = new User("Mike", "Newbie", LocalDate.of(1990, 5, 3), "1234");
 
         User foundUser = userRepository.save(newUser);
 
@@ -86,7 +86,7 @@ public class UserRepositoryIntegrationTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void givenNullAttribute_whenSaveUser_thenThrowIllegalArgument(){
-        User newUser = new User("Mike", null, LocalDate.of(1990, 5, 3));
+        User newUser = new User("Mike", null, LocalDate.of(1990, 5, 3), "1234");
 
         User foundUser = userRepository.save(newUser);
     }
