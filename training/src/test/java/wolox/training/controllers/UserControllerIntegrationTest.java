@@ -393,20 +393,12 @@ public class UserControllerIntegrationTest {
         String finalDate = "1970-05-05";
         String characters = "o";
 
-        JsonObject jo = new JsonObject();
-        jo.addProperty("startDate", startDate);
-        jo.addProperty("finalDate",finalDate);
-        jo.addProperty("characters", characters);
-
-        String jsonString = jo.toString();
-
         List<User> foundUsers = new ArrayList<>();
         foundUsers.add(oldUser);
         given(userRepository.findByBirthdateBetweenAndNameContains(LocalDate.parse(startDate), LocalDate.parse(finalDate), characters)).willReturn(foundUsers);
 
-        mvc.perform(get(baseUrl+"birthdateBetweenAndNameContains")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(jsonString))
+        mvc.perform(get(baseUrl+"birthdateBetweenAndNameContains?startDate={startDate}&finalDate={finalDate}&characters={characters}", startDate, finalDate, characters)
+            .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$", hasSize(foundUsers.size())))
             .andExpect(jsonPath("$[0].name", is(oldUser.getName())));
@@ -414,14 +406,14 @@ public class UserControllerIntegrationTest {
 
     @WithMockUser(username = "user", password = "1234")
     @Test
-    public void givenTwoDatesButNoCharacters_whenFindByBirthdateBetweenAndNameContains_thenThrowJsonException()
+    public void givenWrongDate_whenFindByBirthdateBetweenAndNameContains_thenThrowInvalidDate()
         throws Exception {
         User oldUser = createDefaultUser(3L, "oldie");
         oldUser.setBirthdate(LocalDate.of(1960, 5, 5));
         oldUser.setName("oldie");
 
         String startDate = "1950-05-05";
-        String finalDate = "1970-05-05";
+        String finalDate = "19770-05-05";
 
         JsonObject jo = new JsonObject();
         jo.addProperty("startDate", startDate);
@@ -429,11 +421,11 @@ public class UserControllerIntegrationTest {
 
         String jsonString = jo.toString();
 
-        mvc.perform(get(baseUrl+"birthdateBetweenAndNameContains")
+        mvc.perform(get(baseUrl+"birthdateBetweenAndNameContains?startDate={startDate}&finalDate={finalDate}&characters=", startDate, finalDate)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonString))
             .andExpect(status().isConflict())
-            .andExpect(status().reason("No value for characters"));
+            .andExpect(status().reason("Invalid date"));
     }
 
     //enregion

@@ -1,10 +1,7 @@
 package wolox.training.controllers;
 
-import com.google.gson.JsonObject;
-import com.sun.deploy.net.HttpResponse;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
-import java.util.HashMap;
 import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -12,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -20,7 +16,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -139,24 +135,14 @@ public class UserController {
     }
 
     @GetMapping("/birthdateBetweenAndNameContains")
-    public List<User> getUsersByBirthdateBetweenAndNameContains(@RequestBody String stringParams) throws JSONException {
-        JSONObject params = new JSONObject(stringParams);
-
+    public List<User> getUsersByBirthdateBetweenAndNameContains(@RequestParam(name="startDate") String startDate, @RequestParam(name="finalDate") String finalDate,
+        @RequestParam(name="characters") String characters)  {
         try {
-            LocalDate startDate = LocalDate.parse(params.get("startDate").toString());
-            LocalDate finalDate = LocalDate.parse(params.get("finalDate").toString());
-            String characters = params.get("characters").toString();
-            return userRepository
-                .findByBirthdateBetweenAndNameContains(startDate, finalDate, characters);
-        } catch (JSONException ex){
-            throw new ResponseStatusException(HttpStatus.CONFLICT, ex.getMessage(), ex);
-        } catch (DateTimeParseException ex){
+            return userRepository.findByBirthdateBetweenAndNameContains(LocalDate.parse(startDate),
+                LocalDate.parse(finalDate), characters);
+        } catch (DateTimeParseException ex) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Invalid date", ex);
         }
     }
-
-
-
-
 
 }
