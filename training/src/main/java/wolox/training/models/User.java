@@ -39,6 +39,7 @@ public class User {
     private String username;
 
     @NotNull @Column(length = 60)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @NotNull
@@ -85,7 +86,6 @@ public class User {
 
     public void setPassword(String password) {
         Preconditions.checkNotNull(password, "The password cannot be null");
-
         this.password = encoder().encode(password);
     }
 

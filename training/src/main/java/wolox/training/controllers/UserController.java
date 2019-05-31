@@ -1,7 +1,10 @@
 package wolox.training.controllers;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -78,10 +81,16 @@ public class UserController {
     }
 
     @PutMapping("/editPass/{userId}")
-    public User updatePassword(@PathVariable Long userId, @RequestBody String oldPass, @RequestBody String newPass)
-        throws UserNotFoundException, OldPasswordMistatchException {
+    public User updatePassword(@PathVariable Long userId, @RequestBody String stringParams)
+        throws UserNotFoundException, OldPasswordMistatchException, JSONException {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
-        if(!oldPass.equals(user.getPassword())) {
+
+        JSONObject params = new JSONObject(stringParams);
+
+        String oldPass = params.getString("oldPassword");
+        String newPass = params.getString("newPassword");
+
+        if(!BCrypt.checkpw(oldPass,user.getPassword())) {
             throw new OldPasswordMistatchException();
         }
 
