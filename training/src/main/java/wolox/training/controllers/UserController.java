@@ -2,7 +2,12 @@ package wolox.training.controllers;
 
 import com.google.gson.JsonObject;
 import com.sun.deploy.net.HttpResponse;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.HashMap;
+import java.util.List;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
@@ -131,6 +136,23 @@ public class UserController {
         }
 
         return userRepository.save(user);
+    }
+
+    @GetMapping("/birthdateBetweenAndNameContains")
+    public List<User> getUsersByBirthdateBetweenAndNameContains(@RequestBody String stringParams) throws JSONException {
+        JSONObject params = new JSONObject(stringParams);
+
+        try {
+            LocalDate startDate = LocalDate.parse(params.get("startDate").toString());
+            LocalDate finalDate = LocalDate.parse(params.get("finalDate").toString());
+            String characters = params.get("characters").toString();
+            return userRepository
+                .findByBirthdateBetweenAndNameContains(startDate, finalDate, characters);
+        } catch (JSONException ex){
+            throw new ResponseStatusException(HttpStatus.CONFLICT, ex.getMessage(), ex);
+        } catch (DateTimeParseException ex){
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Invalid date", ex);
+        }
     }
 
 

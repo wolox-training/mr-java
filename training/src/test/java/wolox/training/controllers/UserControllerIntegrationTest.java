@@ -1,5 +1,6 @@
 package wolox.training.controllers;
 
+import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -11,6 +12,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static wolox.training.TestUtilities.createDefaultBook;
 import static wolox.training.TestUtilities.createDefaultUser;
+
+import com.google.gson.JsonObject;
+import java.time.LocalDate;
 import org.springframework.security.test.context.support.WithMockUser;
 
 
@@ -375,5 +379,63 @@ public class UserControllerIntegrationTest {
             .andExpect(status().reason(userNotFoundExReason));
     }
     //endregion
+
+    //region find user by birthdate between and name contains
+    @WithMockUser(username = "user", password = "1234")
+    @Test
+    public void givenTwoDatesAndCharacters_whenFindByBirthdateBetweenAndNameContains_thenReturnJsonArray()
+        throws Exception {
+        User oldUser = createDefaultUser(3L, "oldie");
+        oldUser.setBirthdate(LocalDate.of(1960, 5, 5));
+        oldUser.setName("oldie");
+
+        String startDate = "1950-05-05";
+        String finalDate = "1970-05-05";
+        String characters = "o";
+
+        JsonObject jo = new JsonObject();
+        jo.addProperty("startDate", startDate);
+        jo.addProperty("finalDate",finalDate);
+        jo.addProperty("characters", characters);
+
+        String jsonString = jo.toString();
+
+        List<User> foundUsers = new ArrayList<>();
+        foundUsers.add(oldUser);
+        given(userRepository.findByBirthdateBetweenAndNameContains(LocalDate.parse(startDate), LocalDate.parse(finalDate), characters)).willReturn(foundUsers);
+
+        mvc.perform(get(baseUrl+"birthdateBetweenAndNameContains")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonString))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(foundUsers.size())))
+            .andExpect(jsonPath("$[0].name", is(oldUser.getName())));
+    }
+
+    @WithMockUser(username = "user", password = "1234")
+    @Test
+    public void givenTwoDatesButNoCharacters_whenFindByBirthdateBetweenAndNameContains_thenThrowJsonException()
+        throws Exception {
+        User oldUser = createDefaultUser(3L, "oldie");
+        oldUser.setBirthdate(LocalDate.of(1960, 5, 5));
+        oldUser.setName("oldie");
+
+        String startDate = "1950-05-05";
+        String finalDate = "1970-05-05";
+
+        JsonObject jo = new JsonObject();
+        jo.addProperty("startDate", startDate);
+        jo.addProperty("finalDate",finalDate);
+
+        String jsonString = jo.toString();
+
+        mvc.perform(get(baseUrl+"birthdateBetweenAndNameContains")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonString))
+            .andExpect(status().isConflict())
+            .andExpect(status().reason("No value for characters"));
+    }
+
+    //enregion
 
 }
