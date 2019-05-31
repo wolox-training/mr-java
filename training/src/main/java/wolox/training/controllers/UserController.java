@@ -70,7 +70,7 @@ public class UserController {
 
         return userRepository.save(user);
     }
-
+  
     @PostMapping("/")
     @ResponseStatus(HttpStatus.CREATED)
     public User create(@RequestBody User user) throws NullAttributesException {
@@ -124,9 +124,5 @@ public class UserController {
 
         return userRepository.save(user);
     }
-
-
-
-
 
 }

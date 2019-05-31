@@ -73,9 +73,13 @@ public class BookDTO {
         this.authors = authors;
     }
 
-    public String getImage() { return image; }
+    public String getImage() {
+        return image;
+    }
 
-    public void setImage(String image) { this.image = image; }
+    public void setImage(String image) {
+        this.image = image;
+    }
 
     public String getAuthorsAsString(){
         String response = Joiner.on(" - ").join(this.getAuthors());
