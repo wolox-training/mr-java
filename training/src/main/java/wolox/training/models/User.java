@@ -20,11 +20,15 @@ import javax.persistence.Id;
 import javax.persistence.ManyToMany;
 import javax.validation.constraints.NotNull;
 import org.postgresql.shaded.com.ongres.scram.common.util.Preconditions;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import wolox.training.exceptions.BookAlreadyOwnedException;
 import wolox.training.exceptions.BookNotFoundException;
 
 @Entity(name="users")
 public class User {
+
 
     @Id
     @GeneratedValue
@@ -34,6 +38,7 @@ public class User {
     private String username;
 
     @NotNull @Column(length = 60)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
     @NotNull
@@ -53,10 +58,11 @@ public class User {
 
     }
 
-    public User(String name, String username, LocalDate birthdate){
+    public User(String name, String username, LocalDate birthdate, String password){
         this.setName(name);
         this.setUsername(username);
         this.setBirthdate(birthdate);
+        this.setPassword(password);
     }
 
     public Long getId() {
@@ -79,7 +85,7 @@ public class User {
 
     public void setPassword(String password) {
         Preconditions.checkNotNull(password, "The password cannot be null");
-        this.password = password;
+        this.password = encoder().encode(password);
     }
 
     public String getName() {
@@ -139,7 +145,7 @@ public class User {
     {
         return (username==null || name==null || birthdate == null);
     }
-
+  
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
@@ -156,5 +162,10 @@ public class User {
     @Override
     public int hashCode() {
         return Objects.hash(id, username, name, birthdate, books);
+    }
+
+    @Bean
+    public PasswordEncoder encoder(){
+        return new BCryptPasswordEncoder();
     }
 }

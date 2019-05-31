@@ -4,7 +4,6 @@ import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
 import static org.mockito.BDDMockito.willThrow;
-import static org.mockito.Mockito.doThrow;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -29,7 +28,6 @@ import org.springframework.test.web.servlet.MockMvc;
 import static org.hamcrest.CoreMatchers.is;
 import static wolox.training.TestUtilities.createDefaultBook;
 import static wolox.training.TestUtilities.mapToJsonString;
-import static wolox.training.TestUtilities.setBookId;
 
 import wolox.training.exceptions.BookNotFoundException;
 import wolox.training.models.Book;
@@ -151,7 +149,7 @@ public class BookControllerIntegrationTest {
     public void givenInBdIsbn_whenFindByIsbn_thenReturnJson() throws Exception {
         given(bookRepository.findByIsbn(book.getIsbn())).willReturn(Optional.ofNullable(book));
 
-        mvc.perform(get(baseUrl+"findOne/{isbn}", book.getIsbn())
+        mvc.perform(get(baseUrl+"isbn/{isbn}", book.getIsbn())
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("title", is(book.getTitle())))
@@ -171,7 +169,7 @@ public class BookControllerIntegrationTest {
         given(openLibraryService.bookInfo(isbn)).willReturn(bookDTO);
         given(bookRepository.save(new Book(bookDTO))).willReturn(newBook);
 
-        mvc.perform(get(baseUrl+"findOne/{isbn}", isbn)
+        mvc.perform(get(baseUrl+"isbn/{isbn}", isbn)
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("author", is(newBook.getAuthor())))
@@ -208,7 +206,7 @@ public class BookControllerIntegrationTest {
         given(openLibraryService.bookInfo(isbn)).willReturn(bookDTO);
         given(bookRepository.save(new Book(bookDTO))).willReturn(newBook);
 
-        mvc.perform(get(baseUrl+"findOne/{isbn}", isbn)
+        mvc.perform(get(baseUrl+"isbn/{isbn}", isbn)
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isCreated())
             .andExpect(jsonPath("author", is(newBook.getAuthor())))
@@ -229,7 +227,7 @@ public class BookControllerIntegrationTest {
         given(bookRepository.findByIsbn(nonExistingIsbn)).willReturn(Optional.empty());
         willThrow(new BookNotFoundException()).given(openLibraryService).bookInfo(any(String.class));
 
-        mvc.perform(get(baseUrl+"findOne/{isbn}","nonExistingIsbn")
+        mvc.perform(get(baseUrl+"isbn/{isbn}","nonExistingIsbn")
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isNotFound())
             .andExpect(status().reason(bookNotFoundExReason));

@@ -2,7 +2,6 @@ package wolox.training.controllers;
 
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.BDDMockito.given;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -11,6 +10,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static wolox.training.TestUtilities.createDefaultBook;
 import static wolox.training.TestUtilities.createDefaultUser;
+
+import org.json.JSONObject;
 import org.springframework.security.test.context.support.WithMockUser;
 
 
@@ -264,6 +265,61 @@ public class UserControllerIntegrationTest {
             .content(stringChangedBook))
             .andExpect(status().isBadRequest())
             .andExpect(status().reason(nullAttributesExReason));
+    }
+    //endregion
+
+    //region update password
+    @WithMockUser(username = "user", password = "1234")
+    @Test
+    public void givenOldAndNewPass_whenUpdatePassword_thenReturnJson() throws Exception {
+        String oldPass = "1234";
+        String newPass = "1111";
+
+        otherUser.setPassword(oldPass);
+
+        User changedUser = createDefaultUser(otherUser.getId(), otherUser.getUsername());
+        changedUser.setPassword(newPass);
+
+        JSONObject jo = new JSONObject();
+        jo.put("oldPassword", oldPass);
+        jo.put("newPassword", newPass);
+
+        String jsonString = jo.toString();
+
+        given(userRepository.findById(otherUser.getId())).willReturn(Optional.ofNullable(otherUser));
+        given(userRepository.save(changedUser)).willReturn(changedUser);
+
+        mvc.perform(put(baseUrl+"editPass/{userId}", otherUser.getId())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonString))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.name", is(changedUser.getName())))
+            .andExpect(jsonPath("$.username", is(changedUser.getUsername())))
+            .andExpect(jsonPath("$.birthdate",  is(changedUser.getBirthdate().toString())))
+            .andExpect(jsonPath("$.books", hasSize(changedUser.getBooks().size())));
+    }
+
+    @WithMockUser(username = "user", password = "1234")
+    @Test
+    public void givenWongOldPass_whenUpdatePassword_thenThrowOldPasswordMismatch() throws Exception {
+        String wrongOldPass = "2222";
+        String newPass = "1111";
+
+        otherUser.setPassword("1234");
+
+        JSONObject jo = new JSONObject();
+        jo.put("oldPassword", wrongOldPass);
+        jo.put("newPassword", newPass);
+
+        String jsonString = jo.toString();
+
+        given(userRepository.findById(otherUser.getId())).willReturn(Optional.ofNullable(otherUser));
+
+        mvc.perform(put(baseUrl+"editPass/{userId}", otherUser.getId())
+            .contentType(MediaType.APPLICATION_JSON)
+            .content(jsonString))
+            .andExpect(status().isConflict())
+            .andExpect(status().reason("Old Password Mismatch"));
     }
     //endregion
 
