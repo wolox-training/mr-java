@@ -142,12 +142,21 @@ public class UserController {
     }
 
   @GetMapping("/birthdateBetweenAndNameContains")
-    public List<User> getUsersByBirthdateBetweenAndNameContains(@RequestParam(name="startDate") String startDate, @RequestParam(name="finalDate") String finalDate,
-        @RequestParam(name="characters") String characters)  {
+    public List<User> getUsersByBirthdateBetweenAndNameContains(@RequestParam(name="fromDate", required = false) String fromDate, @RequestParam(name="toDate", required = false) String toDate,
+        @RequestParam(name="characters", required = false) String characters)  {
         try {
-            return userRepository.findByBirthdateBetweenAndNameContains(LocalDate.parse(startDate),
-                LocalDate.parse(finalDate), characters);
-        } catch (DateTimeParseException ex) {
+            return userRepository.findByBirthdateBetweenAndNameContains(LocalDate.parse(fromDate),
+                LocalDate.parse(toDate), characters);
+        }catch (NullPointerException ex){
+            if(fromDate == null) {
+                return userRepository
+                    .findByBirthdateBetweenAndNameContains(null, LocalDate.parse(toDate), characters);
+            } else{
+                return userRepository
+                    .findByBirthdateBetweenAndNameContains(LocalDate.parse(fromDate), null, characters);
+            }
+        }
+        catch (DateTimeParseException ex) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Invalid date", ex);
         }
     }

@@ -1,6 +1,5 @@
 package wolox.training.controllers;
 
-import static org.hamcrest.Matchers.contains;
 import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.BDDMockito.given;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
@@ -448,15 +447,15 @@ public class UserControllerIntegrationTest {
         oldUser.setBirthdate(LocalDate.of(1960, 5, 5));
         oldUser.setName("oldie");
 
-        String startDate = "1950-05-05";
-        String finalDate = "1970-05-05";
+        String fromDate = "1950-05-05";
+        String toDate = "1970-05-05";
         String characters = "o";
 
         List<User> foundUsers = new ArrayList<>();
         foundUsers.add(oldUser);
-        given(userRepository.findByBirthdateBetweenAndNameContains(LocalDate.parse(startDate), LocalDate.parse(finalDate), characters)).willReturn(foundUsers);
+        given(userRepository.findByBirthdateBetweenAndNameContains(LocalDate.parse(fromDate), LocalDate.parse(toDate), characters)).willReturn(foundUsers);
 
-        mvc.perform(get(baseUrl+"birthdateBetweenAndNameContains?startDate={startDate}&finalDate={finalDate}&characters={characters}", startDate, finalDate, characters)
+        mvc.perform(get(baseUrl+"birthdateBetweenAndNameContains?fromDate={fromDate}&toDate={toDate}&characters={characters}", fromDate, toDate, characters)
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$", hasSize(foundUsers.size())))
@@ -471,22 +470,104 @@ public class UserControllerIntegrationTest {
         oldUser.setBirthdate(LocalDate.of(1960, 5, 5));
         oldUser.setName("oldie");
 
-        String startDate = "1950-05-05";
-        String finalDate = "19770-05-05";
+        String fromDate = "1950-05-05";
+        String toDate = "19770-05-05";
 
        JSONObject jo = new JSONObject();
-        jo.put("startDate", startDate);
-        jo.put("finalDate",finalDate);
+        jo.put("fromDate", fromDate);
+        jo.put("toDate",toDate);
 
         String jsonString = jo.toString();
 
-        mvc.perform(get(baseUrl+"birthdateBetweenAndNameContains?startDate={startDate}&finalDate={finalDate}&characters=", startDate, finalDate)
+        mvc.perform(get(baseUrl+"birthdateBetweenAndNameContains?fromDate={fromDate}&toDate={toDate}&characters=", fromDate, toDate)
             .contentType(MediaType.APPLICATION_JSON)
             .content(jsonString))
             .andExpect(status().isConflict())
             .andExpect(status().reason("Invalid date"));
     }
 
+    @WithMockUser(username = "user", password = "1234")
+    @Test
+    public void givenNoCharacters_whenFindByBirthdateBetweenAndNameContains_thenReturnJsonArray()
+        throws Exception {
+        User oldUser = createDefaultUser(3L, "oldie");
+        oldUser.setBirthdate(LocalDate.of(1960, 5, 5));
+        oldUser.setName("Oldie");
+
+        User otherOldUser = createDefaultUser(3L, "otherOldie");
+        oldUser.setBirthdate(LocalDate.of(1968, 5, 5));
+        oldUser.setName("Nice name");
+
+        String fromDate = "1950-05-05";
+        String toDate = "1970-05-05";
+
+        List<User> foundUsers = new ArrayList<>();
+        foundUsers.add(oldUser);
+        foundUsers.add(otherOldUser);
+        given(userRepository.findByBirthdateBetweenAndNameContains(LocalDate.parse(fromDate), LocalDate.parse(toDate), null)).willReturn(foundUsers);
+
+        mvc.perform(get(baseUrl+"birthdateBetweenAndNameContains?fromDate={fromDate}&toDate={toDate}", fromDate, toDate)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(foundUsers.size())))
+            .andExpect(jsonPath("$[0].name", is(oldUser.getName())))
+            .andExpect(jsonPath("$[1].name", is(otherOldUser.getName())));
+    }
+
+    @WithMockUser(username = "user", password = "1234")
+    @Test
+    public void givenNoFromDate_whenFindByBirthdateBetweenAndNameContains_thenReturnJsonArray()
+        throws Exception {
+        User oldUser = createDefaultUser(3L, "oldie");
+        oldUser.setBirthdate(LocalDate.of(1960, 5, 5));
+        oldUser.setName("Oldie");
+
+        User otherOldUser = createDefaultUser(3L, "otherOldie");
+        oldUser.setBirthdate(LocalDate.of(1968, 5, 5));
+        oldUser.setName("Nice name");
+
+        String toDate = "1970-05-05";
+        String characters = "i";
+
+        List<User> foundUsers = new ArrayList<>();
+        foundUsers.add(oldUser);
+        foundUsers.add(otherOldUser);
+        given(userRepository.findByBirthdateBetweenAndNameContains(null, LocalDate.parse(toDate), characters)).willReturn(foundUsers);
+
+        mvc.perform(get(baseUrl+"birthdateBetweenAndNameContains?toDate={toDate}&characters={characters}", toDate, characters)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(foundUsers.size())))
+            .andExpect(jsonPath("$[0].name", is(oldUser.getName())))
+            .andExpect(jsonPath("$[1].name", is(otherOldUser.getName())));
+    }
+
+    @WithMockUser(username = "user", password = "1234")
+    @Test
+    public void givenNoToDate_whenFindByBirthdateBetweenAndNameContains_thenReturnJsonArray()
+        throws Exception {
+        User oldUser = createDefaultUser(3L, "oldie");
+        oldUser.setBirthdate(LocalDate.of(1960, 5, 5));
+        oldUser.setName("Oldie");
+
+        User otherOldUser = createDefaultUser(3L, "otherOldie");
+        oldUser.setBirthdate(LocalDate.of(1968, 5, 5));
+        oldUser.setName("Nice name");
+
+        String fromDate = "1965-05-05";
+        String characters = "i";
+
+        List<User> foundUsers = new ArrayList<>();
+        foundUsers.add(otherOldUser);
+        given(userRepository.findByBirthdateBetweenAndNameContains(LocalDate.parse(fromDate), null, characters)).willReturn(foundUsers);
+
+        mvc.perform(get(baseUrl+"birthdateBetweenAndNameContains?fromDate={fromDate}&characters={characters}", fromDate, characters)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(foundUsers.size())))
+            .andExpect(jsonPath("$[0].name", is(otherOldUser.getName())));
+    }
     //enregion
 
 }
+

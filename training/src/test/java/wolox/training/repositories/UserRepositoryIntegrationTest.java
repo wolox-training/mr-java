@@ -110,5 +110,25 @@ public class UserRepositoryIntegrationTest {
     }
     //endregion
 
+    //region find user by birthdate between dates and name containing characters
+    @Test
+    public void givenDatesAndCharacters_whenFindByBirthdateBetweenAndNameContains_thenReturnUsers(){
+        assertThat(userRepository.findByBirthdateBetweenAndNameContains(LocalDate.of(1950, 05, 05), LocalDate.of(1996, 05, 05), "en")).contains(otherUser);
+    }
 
+    @Test
+    public void givenNullCharacters_whenFindByBirthdateBetweenAndNameContains_thenReturnUsers(){
+        assertThat(userRepository.findByBirthdateBetweenAndNameContains(LocalDate.of(1950, 05, 05), LocalDate.of(1996, 05, 05), null)).contains(otherUser);
+    }
+
+    @Test
+    public void givenNullToDate_whenFindByBirthdateBetweenAndNameContains_thenReturnUsers(){
+        assertThat(userRepository.findByBirthdateBetweenAndNameContains( LocalDate.of(1990, 05, 05), null, "i")).contains(otherUser).contains(user);
+    }
+
+    @Test
+    public void givenNullFromDate_whenFindByBirthdateBetweenAndNameContains_thenReturnUsers(){
+        assertThat(userRepository.findByBirthdateBetweenAndNameContains( null, LocalDate.of(1996, 05, 05), "i")).contains(otherUser);
+    }
+    //endregion
 }
