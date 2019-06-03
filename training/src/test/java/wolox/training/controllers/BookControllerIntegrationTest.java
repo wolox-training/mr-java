@@ -63,6 +63,7 @@ public class BookControllerIntegrationTest {
     private BookDTO bookDTO;
     private List<String> authors;
     private List<String> publishers;
+    private List<Book> books;
 
     @Before
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
@@ -77,7 +78,7 @@ public class BookControllerIntegrationTest {
         book = createDefaultBook(1L, "Harry Potter and the Philosopher's Stone");
         otherBook = createDefaultBook(2L, "Harry Potter 2");
 
-        List<Book> books = new ArrayList<Book>();
+        books = new ArrayList<Book>();
         books.add(book);
         books.add(otherBook);
 
@@ -97,7 +98,7 @@ public class BookControllerIntegrationTest {
         bookDTO.setPublishDate("1994");
         bookDTO.setAuthors(authors);
 
-        given(bookRepository.findAll()).willReturn(books);
+        given(bookRepository.findAll(null, null, null, null, null, null, null, null, null)).willReturn(books);
         given(bookRepository.findById(book.getId())).willReturn(java.util.Optional.of(book));
         given(bookRepository.findById(nonExistingId)).willReturn(Optional.empty());
     }
@@ -110,7 +111,7 @@ public class BookControllerIntegrationTest {
         mvc.perform(get(baseUrl)
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$", hasSize(2)))
+            .andExpect(jsonPath("$", hasSize(books.size())))
             .andExpect(jsonPath("$[0].title", is(book.getTitle())))
             .andExpect(jsonPath("$[1].title", is(otherBook.getTitle())));
     }
@@ -120,6 +121,21 @@ public class BookControllerIntegrationTest {
         mvc.perform(get(baseUrl)
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isUnauthorized());
+    }
+
+    @WithMockUser(username = "user", password = "1234")
+    @Test
+    public void givenGenreProperty_whenGetAllBooks_thenReturnJsonArrayContainingBooksWithGenre() throws Exception{
+        String genre = "Fantasy";
+
+        given(bookRepository.findAll(null, genre, null, null, null, null, null, null, null)).willReturn(books);
+
+        mvc.perform(get(baseUrl+"?genre={genre}", genre)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(books.size())))
+            .andExpect(jsonPath("$[0].genre", is(genre)))
+            .andExpect(jsonPath("$[1].genre", is(genre)));
     }
     //endregion
 

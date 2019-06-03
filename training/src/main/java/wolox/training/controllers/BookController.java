@@ -6,6 +6,7 @@ import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
@@ -49,8 +50,11 @@ public class BookController {
     }
 
     @GetMapping("/")
-    public Iterable findAll(){
-        return bookRepository.findAll();
+    public List<Book> findAll(@RequestParam(name="author", required=false) String author, @RequestParam(name="genre", required=false) String genre,
+        @RequestParam(name="image", required=false) String image, @RequestParam(name="title", required=false) String title, @RequestParam(name="subtitle", required=false) String subtitle,
+        @RequestParam(name="publisher", required=false) String publisher, @RequestParam(name="year", required=false) String year, @RequestParam(name="pages", required=false) Integer pages,
+        @RequestParam(name="isbn", required=false) String isbn){
+        return bookRepository.findAll(author, genre, image, title, subtitle, publisher, year, pages, isbn);
     }
 
     @GetMapping("/{id}")
