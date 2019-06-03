@@ -11,9 +11,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
-import com.google.gson.JsonObject;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -30,13 +27,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import static org.hamcrest.CoreMatchers.is;
 import static wolox.training.TestUtilities.createDefaultBook;
-import static wolox.training.TestUtilities.createDefaultUser;
 import static wolox.training.TestUtilities.mapToJsonString;
 
 import wolox.training.exceptions.BookNotFoundException;
 import wolox.training.models.Book;
 import wolox.training.models.BookDTO;
-import wolox.training.models.User;
 import wolox.training.repositories.BookRepository;
 import wolox.training.security.CustomAuthenticationProvider;
 import wolox.training.services.OpenLibraryService;
@@ -435,6 +430,42 @@ public class BookControllerIntegrationTest {
             .andExpect(jsonPath("$[0].publisher", is(specialBook.getPublisher())))
             .andExpect(jsonPath("$[0].genre", is(specialBook.getGenre())))
             .andExpect(jsonPath("$[0].year", is(specialBook.getYear())));
+    }
+
+    @WithMockUser(username = "user", password = "1234")
+    @Test
+    public void givenNullPublisher_whenFindByPublisherAndByGenreAndByYear_thenReturnJsonArray()
+        throws Exception {
+        String genre = "Novel";
+        String year = "1995";
+
+        Book specialBook = createDefaultBook(3L, "Great Title");
+        specialBook.setGenre(genre);
+        specialBook.setPublisher("Sample Publisher");
+        specialBook.setYear(year);
+
+        Book otherSpecialBook = createDefaultBook(4L, "Other Great Title");
+        specialBook.setGenre(genre);
+        specialBook.setPublisher("Other Sample Publisher");
+        specialBook.setYear(year);
+
+        List<Book> foundBooks = new ArrayList<>();
+        foundBooks.add(specialBook);
+        foundBooks.add(otherSpecialBook);
+        given(bookRepository.findByPublisherAndGenreAndYear(null, genre,
+            year)).willReturn(foundBooks);
+
+        mvc.perform(get(baseUrl+"byPublisherAndByGenreAndByYear?genre={genre}&year={year}",
+             genre, year)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", Matchers.hasSize(foundBooks.size())))
+            .andExpect(jsonPath("$[0].publisher", is(specialBook.getPublisher())))
+            .andExpect(jsonPath("$[0].genre", is(specialBook.getGenre())))
+            .andExpect(jsonPath("$[0].year", is(specialBook.getYear())))
+            .andExpect(jsonPath("$[1].publisher", is(otherSpecialBook.getPublisher())))
+            .andExpect(jsonPath("$[1].genre", is(otherSpecialBook.getGenre())))
+            .andExpect(jsonPath("$[1].year", is(otherSpecialBook.getYear())));
     }
     //enregion
 

@@ -3,6 +3,7 @@ package wolox.training.repositories;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase.Replace.NONE;
 
+import java.util.List;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -58,7 +59,7 @@ public class BookRepositoryIntegrationTest {
     public void givenNonExistingId_whenFindById_thenThrowBookNotFound() throws BookNotFoundException {
         Book bookFound = bookRepository.findById(nonExistingId).orElseThrow(BookNotFoundException::new);
     }
-    //enregion
+    //endregion
 
     //region save book
     @Test
@@ -78,7 +79,7 @@ public class BookRepositoryIntegrationTest {
 
         Book addedBook = bookRepository.save(newBook);
     }
-    //enregion
+    //endregion
 
     //region delete book
     @Test
@@ -97,4 +98,21 @@ public class BookRepositoryIntegrationTest {
     }
     //endregion
 
+
+    //region find book by publisher, genre and year
+    @Test
+    public void givenPublisherGenreAndYear_whenFindByPublisherGenreAndYear_thenReturnBooks(){
+        assertThat(bookRepository.findByPublisherAndGenreAndYear("Bloomsbury Publishing", "Fantasy", "1998")).contains(otherBook).doesNotContain(book);
+    }
+
+    @Test
+    public void givenNullYear_whenFindByPublisherGenreAndYear_thenReturnBooks(){
+        assertThat(bookRepository.findByPublisherAndGenreAndYear("Bloomsbury Publishing", "Fantasy", null)).contains(otherBook).contains(book);
+    }
+
+    @Test
+    public void givenNullPublisher_whenFindByPublisherGenreAndYear_thenReturnBooks(){
+        assertThat(bookRepository.findByPublisherAndGenreAndYear(null, "Fantasy", "1998")).contains(otherBook);
+    }
+    //endregion
 }
