@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.util.List;
 import org.json.JSONException;
 import org.springframework.beans.factory.annotation.Autowired;
-
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -56,7 +55,7 @@ public class BookController {
         @RequestParam(name="image", required=false) String image, @RequestParam(name="title", required=false) String title, @RequestParam(name="subtitle", required=false) String subtitle,
         @RequestParam(name="publisher", required=false) String publisher, @RequestParam(name="year", required=false) String year, @RequestParam(name="pages", required=false) Integer pages,
         @RequestParam(name="isbn", required=false) String isbn, @RequestParam(name="page", required = false, defaultValue = "0") Integer page,
-        @RequestParam(name="size", required = false, defaultValue = "5") Integer size, @RequestParam(name="sort", required = false, defaultValue = "id") List<Order> order){
+        @RequestParam(name="size", required = false, defaultValue = "5") Integer size, @RequestParam(name="order", required = false, defaultValue = "title") List<Order> order){
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(order));
 
@@ -113,8 +112,12 @@ public class BookController {
 
     @GetMapping("/byPublisherAndByGenreAndByYear")
     public List<Book> getBooksByPublisherAndByGenreAndByYear(@RequestParam(name="publisher", required=false) String publisher, @RequestParam(name="genre", required=false) String genre,
-        @RequestParam(name="year", required=false) String year){
-        return bookRepository.findByPublisherAndGenreAndYear(publisher, genre, year);
+        @RequestParam(name="year", required=false) String year, @RequestParam(name="page", required = false, defaultValue = "0") Integer page,
+        @RequestParam(name="size", required = false, defaultValue = "5") Integer size, @RequestParam(name="order", required = false, defaultValue = "title") List<Order> order){
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(order));
+
+        return bookRepository.findByPublisherAndGenreAndYear(publisher, genre, year, pageable);
     }
 }
 
