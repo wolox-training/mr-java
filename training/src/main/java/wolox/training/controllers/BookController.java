@@ -1,12 +1,15 @@
 package wolox.training.controllers;
 
+
 import java.io.IOException;
-import java.time.format.DateTimeParseException;
 import java.util.List;
 import org.json.JSONException;
-import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
+
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
@@ -20,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 import wolox.training.exceptions.BookIdMismatchException;
 import wolox.training.exceptions.BookNotFoundException;
 import wolox.training.exceptions.ConnectionFailedException;
@@ -53,8 +55,12 @@ public class BookController {
     public List<Book> findAll(@RequestParam(name="author", required=false) String author, @RequestParam(name="genre", required=false) String genre,
         @RequestParam(name="image", required=false) String image, @RequestParam(name="title", required=false) String title, @RequestParam(name="subtitle", required=false) String subtitle,
         @RequestParam(name="publisher", required=false) String publisher, @RequestParam(name="year", required=false) String year, @RequestParam(name="pages", required=false) Integer pages,
-        @RequestParam(name="isbn", required=false) String isbn){
-        return bookRepository.findAll(author, genre, image, title, subtitle, publisher, year, pages, isbn);
+        @RequestParam(name="isbn", required=false) String isbn, @RequestParam(name="page", required = false, defaultValue = "0") Integer page,
+        @RequestParam(name="size", required = false, defaultValue = "5") Integer size, @RequestParam(name="sort", required = false, defaultValue = "id") List<Order> order){
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(order));
+
+        return bookRepository.findAll(author, genre, image, title, subtitle, publisher, year, pages, isbn, pageable);
     }
 
     @GetMapping("/{id}")

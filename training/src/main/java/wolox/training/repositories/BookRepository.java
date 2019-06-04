@@ -2,6 +2,8 @@ package wolox.training.repositories;
 
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
@@ -23,7 +25,6 @@ public interface BookRepository extends CrudRepository<Book, Long> {
         + "(:title is null OR b.title = :title) AND (:subtitle is null OR b.subtitle = :subtitle) AND (:publisher is null OR b.publisher = :publisher) AND (:year is null OR b.year = :year) AND "
         + "(:pages is null OR b.pages = :pages) AND (:isbn is null OR b.isbn = :isbn)")
     public List<Book> findAll(@Param("author") String author, @Param("genre") String genre, @Param("image") String image, @Param("title") String title, @Param("subtitle") String subtitle,
-        @Param("publisher") String publisher, @Param("year") String year, @Param("pages") Integer pages, @Param("isbn") String isbn);
-
+        @Param("publisher") String publisher, @Param("year") String year, @Param("pages") Integer pages, @Param("isbn") String isbn, Pageable pageable);
 
 }
