@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.aspectj.weaver.ast.Or;
 import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,7 +25,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
@@ -555,6 +553,6 @@ public class BookControllerIntegrationTest {
             .andExpect(jsonPath("$[1].title", is(otherSpecialBook.getTitle())))
             .andExpect(jsonPath("$[1].year", is(otherSpecialBook.getYear())));
     }
-    //enregion
+    //endregion
 
 }
