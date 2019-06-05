@@ -6,10 +6,7 @@ import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCrypt;
@@ -27,7 +24,7 @@ import org.springframework.web.server.ResponseStatusException;
 import wolox.training.exceptions.BookAlreadyOwnedException;
 import wolox.training.exceptions.BookNotFoundException;
 import wolox.training.exceptions.NullAttributesException;
-import wolox.training.exceptions.OldPasswordMistatchException;
+import wolox.training.exceptions.OldPasswordMismatchException;
 import wolox.training.exceptions.UserIdMismatchException;
 import wolox.training.exceptions.UserNotFoundException;
 import wolox.training.models.Book;
@@ -99,7 +96,7 @@ public class UserController {
 
     @PutMapping("/editPass/{userId}")
     public User updatePassword(@PathVariable Long userId, @RequestBody String stringParams)
-        throws UserNotFoundException, OldPasswordMistatchException, JSONException {
+        throws UserNotFoundException, OldPasswordMismatchException, JSONException {
         User user = userRepository.findById(userId).orElseThrow(UserNotFoundException::new);
 
         JSONObject params = new JSONObject(stringParams);
@@ -108,7 +105,7 @@ public class UserController {
         String newPass = params.getString("newPassword");
 
         if(!BCrypt.checkpw(oldPass,user.getPassword())) {
-            throw new OldPasswordMistatchException();
+            throw new OldPasswordMismatchException();
         }
 
         user.setPassword(newPass);

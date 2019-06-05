@@ -4,16 +4,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(code = HttpStatus.CONFLICT, reason = "Old Password Mismatch")
-public class OldPasswordMistatchException extends Exception {
-    public OldPasswordMistatchException(){
+public class OldPasswordMismatchException extends Exception {
+    public OldPasswordMismatchException(){
         super();
     }
 
-    public OldPasswordMistatchException(String message){
+    public OldPasswordMismatchException(String message){
         super(message);
     }
 
-    public OldPasswordMistatchException(String message, Exception ex){
+    public OldPasswordMismatchException(String message, Exception ex){
         super(message, ex);
     }
 
