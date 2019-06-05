@@ -1,13 +1,17 @@
 package wolox.training.controllers;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
+import java.util.List;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,6 +20,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
@@ -40,9 +45,6 @@ public class UserController {
     @Autowired
     BookRepository bookRepository;
 
-  @Autowired
-    PasswordEncoder passwordEncoder;
-
     @GetMapping("/username")
     public User currentUserName(Authentication authentication) throws UserNotFoundException {
         User user = userRepository.findFirstByUsername(authentication.getName());
@@ -51,8 +53,9 @@ public class UserController {
     }
 
     @GetMapping("/")
-    public Iterable<User> findAll(){
-        return userRepository.findAll();
+    public List<User> findAll (Pageable pageable){
+
+        return userRepository.findAllUsers(pageable);
     }
 
     @GetMapping("/{id}")
@@ -139,4 +142,25 @@ public class UserController {
         return userRepository.save(user);
     }
 
+  @GetMapping("/birthdateBetweenAndNameContains")
+    public List<User> getUsersByBirthdateBetweenAndNameContains(@RequestParam(name="fromDate", required = false) String stringFromDate,
+        @RequestParam(name="toDate", required = false) String stringToDate, @RequestParam(name="characters", required = false) String characters, Pageable pageable)  {
+
+        LocalDate fromDate = null;
+        LocalDate toDate = null;
+
+        try{
+            if(stringFromDate!=null) {
+                fromDate = LocalDate.parse(stringFromDate);
+            }
+
+            if(stringToDate!=null){
+                toDate = LocalDate.parse(stringToDate);
+            }
+
+            return userRepository.findByBirthdateBetweenAndNameContains(fromDate, toDate, characters, pageable);
+        }catch (DateTimeParseException ex) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Invalid date", ex);
+        }
+    }
 }

@@ -11,16 +11,21 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import org.hamcrest.Matchers;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -63,6 +68,8 @@ public class BookControllerIntegrationTest {
     private BookDTO bookDTO;
     private List<String> authors;
     private List<String> publishers;
+    private List<Book> books;
+    private Pageable defaultPageable;
 
     @Before
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
@@ -74,10 +81,12 @@ public class BookControllerIntegrationTest {
         nullAttributesExReason = "Received Null Attributes";
         idMismatchExReason = "Book Id Mismatch";
 
+        defaultPageable = PageRequest.of(0,20);
+
         book = createDefaultBook(1L, "Harry Potter and the Philosopher's Stone");
         otherBook = createDefaultBook(2L, "Harry Potter 2");
 
-        List<Book> books = new ArrayList<Book>();
+        books = new ArrayList<Book>();
         books.add(book);
         books.add(otherBook);
 
@@ -97,7 +106,8 @@ public class BookControllerIntegrationTest {
         bookDTO.setPublishDate("1994");
         bookDTO.setAuthors(authors);
 
-        given(bookRepository.findAll()).willReturn(books);
+        given(bookRepository.findAll(null, null, null, null, null, null, null, null, null,
+           defaultPageable)).willReturn(books);
         given(bookRepository.findById(book.getId())).willReturn(java.util.Optional.of(book));
         given(bookRepository.findById(nonExistingId)).willReturn(Optional.empty());
     }
@@ -110,7 +120,7 @@ public class BookControllerIntegrationTest {
         mvc.perform(get(baseUrl)
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$", hasSize(2)))
+            .andExpect(jsonPath("$", hasSize(books.size())))
             .andExpect(jsonPath("$[0].title", is(book.getTitle())))
             .andExpect(jsonPath("$[1].title", is(otherBook.getTitle())));
     }
@@ -120,6 +130,43 @@ public class BookControllerIntegrationTest {
         mvc.perform(get(baseUrl)
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isUnauthorized());
+    }
+
+    @WithMockUser(username = "user", password = "1234")
+    @Test
+    public void givenGenreProperty_whenGetAllBooks_thenReturnJsonArrayContainingBooksWithGenre() throws Exception{
+        String genre = "Fantasy";
+
+        given(bookRepository.findAll(null, genre, null, null, null, null, null, null, null, defaultPageable)).willReturn(books);
+
+        mvc.perform(get(baseUrl+"?genre={genre}", genre)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(books.size())))
+            .andExpect(jsonPath("$[0].genre", is(genre)))
+            .andExpect(jsonPath("$[1].genre", is(genre)));
+    }
+
+    @WithMockUser(username = "user", password = "1234")
+    @Test
+    public void givenPageableAndSortingByTitle_whenGetAllBooks_thenReturnJsonArray() throws Exception{
+        Integer page = 0;
+        Integer size = 2;
+        String sort = "title";
+
+        List<Book> foundBooks = new ArrayList<>();
+        foundBooks = books;
+        Collections.sort(foundBooks, (Book a, Book b) -> a.getTitle().compareToIgnoreCase(b.getTitle()));
+
+        given(bookRepository.findAll(null, null, null, null, null, null, null, null, null, PageRequest.of(page, size,
+            Sort.by(sort)))).willReturn(foundBooks);
+
+        mvc.perform(get(baseUrl+"?page={page}&size={size}&sort={sort}", page.toString(), size.toString(), sort)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(size)))
+            .andExpect(jsonPath("$[0].title", is(otherBook.getTitle())))
+            .andExpect(jsonPath("$[1].title", is(book.getTitle())));
     }
     //endregion
 
@@ -257,7 +304,7 @@ public class BookControllerIntegrationTest {
     }
 
     @Test
-    public void givenBookWithNullGender_whenCreateBook_thenReturnJson() throws Exception {
+    public void givenBookWithNullGenre_whenCreateBook_thenReturnJson() throws Exception {
         Book newBook = book;
         newBook.setGenre(null);
 
@@ -404,6 +451,107 @@ public class BookControllerIntegrationTest {
         mvc.perform(delete(baseUrl+"{id}", nonExistingId))
             .andExpect(status().isNotFound())
             .andExpect(status().reason(bookNotFoundExReason));
+    }
+    //endregion
+
+    //region find book by publisher, genre and year
+    @WithMockUser(username = "user", password = "1234")
+    @Test
+    public void givenPubilsherGenreAndYear_whenFindByPublisherAndByGenreAndByYear_thenReturnJsonArray()
+        throws Exception {
+        Book specialBook = createDefaultBook(3L, "Great Title");
+        specialBook.setGenre("Novel");
+        specialBook.setPublisher("Sample Publisher");
+        specialBook.setYear("1995");
+
+        List<Book> foundBooks = new ArrayList<>();
+        foundBooks.add(specialBook);
+        given(bookRepository.findByPublisherAndGenreAndYear(specialBook.getPublisher(), specialBook.getGenre(),
+            specialBook.getYear(), defaultPageable)).willReturn(foundBooks);
+
+        mvc.perform(get(baseUrl+"byPublisherAndByGenreAndByYear?publisher={publisher}&genre={genre}&year={year}",
+            specialBook.getPublisher(), specialBook.getGenre(), specialBook.getYear())
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", Matchers.hasSize(foundBooks.size())))
+            .andExpect(jsonPath("$[0].publisher", is(specialBook.getPublisher())))
+            .andExpect(jsonPath("$[0].genre", is(specialBook.getGenre())))
+            .andExpect(jsonPath("$[0].year", is(specialBook.getYear())));
+    }
+
+    @WithMockUser(username = "user", password = "1234")
+    @Test
+    public void givenNullPublisher_whenFindByPublisherAndByGenreAndByYear_thenReturnJsonArray()
+        throws Exception {
+        String genre = "Novel";
+        String year = "1995";
+
+        Book specialBook = createDefaultBook(3L, "Great Title");
+        specialBook.setGenre(genre);
+        specialBook.setPublisher("Sample Publisher");
+        specialBook.setYear(year);
+
+        Book otherSpecialBook = createDefaultBook(4L, "Other Great Title");
+        specialBook.setGenre(genre);
+        specialBook.setPublisher("Other Sample Publisher");
+        specialBook.setYear(year);
+
+        List<Book> foundBooks = new ArrayList<>();
+        foundBooks.add(specialBook);
+        foundBooks.add(otherSpecialBook);
+        given(bookRepository.findByPublisherAndGenreAndYear(null, genre,
+            year, defaultPageable)).willReturn(foundBooks);
+
+        mvc.perform(get(baseUrl+"byPublisherAndByGenreAndByYear?genre={genre}&year={year}",
+             genre, year)
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", Matchers.hasSize(foundBooks.size())))
+            .andExpect(jsonPath("$[0].publisher", is(specialBook.getPublisher())))
+            .andExpect(jsonPath("$[0].genre", is(specialBook.getGenre())))
+            .andExpect(jsonPath("$[0].year", is(specialBook.getYear())))
+            .andExpect(jsonPath("$[1].publisher", is(otherSpecialBook.getPublisher())))
+            .andExpect(jsonPath("$[1].genre", is(otherSpecialBook.getGenre())))
+            .andExpect(jsonPath("$[1].year", is(otherSpecialBook.getYear())));
+    }
+
+    @WithMockUser(username = "user", password = "1234")
+    @Test
+    public void givenYearAndSorting_whenFindByPublisherAndByGenreAndByYear_thenReturnJsonArray()
+        throws Exception {
+        String genre = "Novel";
+        String year = "1995";
+        Integer page = 0;
+        Integer size = 5;
+        List<Order> sortOrderList = new ArrayList<>();
+        sortOrderList.add(new Order(null, "year"));
+        sortOrderList.add(new Order(null, "title"));
+
+        Book specialBook = createDefaultBook(3L, "Great Title");
+        specialBook.setGenre(genre);
+        specialBook.setPublisher("Sample Publisher");
+        specialBook.setYear(year);
+
+        Book otherSpecialBook = createDefaultBook(4L, "Other Great Title");
+        specialBook.setGenre(genre);
+        specialBook.setPublisher("Other Sample Publisher");
+        specialBook.setYear(year);
+
+        List<Book> foundBooks = new ArrayList<>();
+        foundBooks.add(specialBook);
+        foundBooks.add(otherSpecialBook);
+        given(bookRepository.findByPublisherAndGenreAndYear(null, null,
+            year, PageRequest.of(page, size, Sort.by(sortOrderList)))).willReturn(foundBooks);
+
+        mvc.perform(get(baseUrl+"byPublisherAndByGenreAndByYear?year={year}&page={page}&size={size}&sort={first}&sort={second}",
+             year, page, size, sortOrderList.get(0).getProperty(), sortOrderList.get(1).getProperty())
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", Matchers.hasSize(foundBooks.size())))
+            .andExpect(jsonPath("$[0].title", is(specialBook.getTitle())))
+            .andExpect(jsonPath("$[0].year", is(specialBook.getYear())))
+            .andExpect(jsonPath("$[1].title", is(otherSpecialBook.getTitle())))
+            .andExpect(jsonPath("$[1].year", is(otherSpecialBook.getYear())));
     }
     //endregion
 
