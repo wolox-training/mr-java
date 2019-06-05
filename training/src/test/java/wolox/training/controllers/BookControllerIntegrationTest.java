@@ -81,7 +81,7 @@ public class BookControllerIntegrationTest {
         nullAttributesExReason = "Received Null Attributes";
         idMismatchExReason = "Book Id Mismatch";
 
-        defaultPageable = PageRequest.of(0,5, Sort.by("title"));
+        defaultPageable = PageRequest.of(0,20);
 
         book = createDefaultBook(1L, "Harry Potter and the Philosopher's Stone");
         otherBook = createDefaultBook(2L, "Harry Potter 2");
@@ -152,16 +152,16 @@ public class BookControllerIntegrationTest {
     public void givenPageableAndSortingByTitle_whenGetAllBooks_thenReturnJsonArray() throws Exception{
         Integer page = 0;
         Integer size = 2;
-        String order = "title";
+        String sort = "title";
 
         List<Book> foundBooks = new ArrayList<>();
         foundBooks = books;
         Collections.sort(foundBooks, (Book a, Book b) -> a.getTitle().compareToIgnoreCase(b.getTitle()));
 
         given(bookRepository.findAll(null, null, null, null, null, null, null, null, null, PageRequest.of(page, size,
-            Sort.by(order)))).willReturn(foundBooks);
+            Sort.by(sort)))).willReturn(foundBooks);
 
-        mvc.perform(get(baseUrl+"?page={page}&size={size}&order={order}", page.toString(), size.toString(), order)
+        mvc.perform(get(baseUrl+"?page={page}&size={size}&sort={sort}", page.toString(), size.toString(), sort)
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$", hasSize(size)))
@@ -523,9 +523,9 @@ public class BookControllerIntegrationTest {
         String year = "1995";
         Integer page = 0;
         Integer size = 5;
-        List<Order> orderList = new ArrayList<>();
-        orderList.add(new Order(null, "year"));
-        orderList.add(new Order(null, "title"));
+        List<Order> sortOrderList = new ArrayList<>();
+        sortOrderList.add(new Order(null, "year"));
+        sortOrderList.add(new Order(null, "title"));
 
         Book specialBook = createDefaultBook(3L, "Great Title");
         specialBook.setGenre(genre);
@@ -541,10 +541,10 @@ public class BookControllerIntegrationTest {
         foundBooks.add(specialBook);
         foundBooks.add(otherSpecialBook);
         given(bookRepository.findByPublisherAndGenreAndYear(null, null,
-            year, PageRequest.of(page, size, Sort.by(orderList)))).willReturn(foundBooks);
+            year, PageRequest.of(page, size, Sort.by(sortOrderList)))).willReturn(foundBooks);
 
-        mvc.perform(get(baseUrl+"byPublisherAndByGenreAndByYear?year={year}&page={page}&size={size}&order={first}&order={second}",
-             year, page, size, orderList.get(0).getProperty(), orderList.get(1).getProperty())
+        mvc.perform(get(baseUrl+"byPublisherAndByGenreAndByYear?year={year}&page={page}&size={size}&sort={first}&sort={second}",
+             year, page, size, sortOrderList.get(0).getProperty(), sortOrderList.get(1).getProperty())
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$", Matchers.hasSize(foundBooks.size())))

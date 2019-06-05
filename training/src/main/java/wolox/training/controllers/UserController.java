@@ -12,7 +12,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -46,9 +45,6 @@ public class UserController {
     @Autowired
     BookRepository bookRepository;
 
-  @Autowired
-    PasswordEncoder passwordEncoder;
-
     @GetMapping("/username")
     public User currentUserName(Authentication authentication) throws UserNotFoundException {
         User user = userRepository.findFirstByUsername(authentication.getName());
@@ -57,10 +53,8 @@ public class UserController {
     }
 
     @GetMapping("/")
-    public List<User> findAll (@RequestParam(name="page", required = false, defaultValue = "0") Integer page, @RequestParam(name="size", required = false, defaultValue = "5") Integer size,
-        @RequestParam(name="order", required = false, defaultValue = "username") List<Order> order){
+    public List<User> findAll (Pageable pageable){
 
-        Pageable pageable = PageRequest.of(page, size, Sort.by(order));
         return userRepository.findAllUsers(pageable);
     }
 
@@ -150,14 +144,10 @@ public class UserController {
 
   @GetMapping("/birthdateBetweenAndNameContains")
     public List<User> getUsersByBirthdateBetweenAndNameContains(@RequestParam(name="fromDate", required = false) String stringFromDate,
-        @RequestParam(name="toDate", required = false) String stringToDate, @RequestParam(name="characters", required = false) String characters,
-        @RequestParam(name="page", required = false, defaultValue = "0") Integer page, @RequestParam(name="size", required = false, defaultValue = "5") Integer size,
-        @RequestParam(name="order", required = false, defaultValue = "username") List<Order> order)  {
+        @RequestParam(name="toDate", required = false) String stringToDate, @RequestParam(name="characters", required = false) String characters, Pageable pageable)  {
 
         LocalDate fromDate = null;
         LocalDate toDate = null;
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by(order));
 
         try{
             if(stringFromDate!=null) {

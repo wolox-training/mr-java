@@ -73,7 +73,7 @@ public class UserControllerIntegrationTest {
         baseUrl = "/api/users/";
         nonExistingId = 0L;
 
-        defaultPageable = PageRequest.of(0,5, Sort.by("username"));
+        defaultPageable = PageRequest.of(0,20);
 
         userNotFoundExReason = "User Not Found";
         nullAttributesExReason = "Received Null Attributes";
@@ -151,19 +151,19 @@ public class UserControllerIntegrationTest {
 
         Integer page = 0;
         Integer size = 5;
-        List<Order> orderList = new ArrayList<>();
-        orderList.add(new Order(null, "name"));
-        orderList.add(new Order(null, "id"));
+        List<Order> sortOrderList = new ArrayList<>();
+        sortOrderList.add(new Order(null, "name"));
+        sortOrderList.add(new Order(null, "id"));
 
         List<User> foundUsers = new ArrayList<>();
         foundUsers.add(user);
         foundUsers.add(otherUser);
         foundUsers.add(newUser);
 
-        given(userRepository.findAllUsers(PageRequest.of(page, size, Sort.by(orderList)))).willReturn(foundUsers);
+        given(userRepository.findAllUsers(PageRequest.of(page, size, Sort.by(sortOrderList)))).willReturn(foundUsers);
 
-        mvc.perform(get(baseUrl+"?page={page}&size={size}&order={firstOrder}&order={secondOrder}", page, size,
-            orderList.get(0).getProperty(), orderList.get(1).getProperty())
+        mvc.perform(get(baseUrl+"?page={page}&size={size}&sort={firstOrder}&sort={secondOrder}", page, size,
+            sortOrderList.get(0).getProperty(), sortOrderList.get(1).getProperty())
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$", hasSize(foundUsers.size())))
@@ -616,19 +616,19 @@ public class UserControllerIntegrationTest {
 
         Integer page = 0;
         Integer size = 2;
-        List<Order> orderList = new ArrayList<>();
-        orderList.add(new Order(null, "name"));
-        orderList.add(new Order(null, "id"));
+        List<Order> sortOrderList = new ArrayList<>();
+        sortOrderList.add(new Order(null, "name"));
+        sortOrderList.add(new Order(null, "id"));
 
         List<User> foundUsers = new ArrayList<>();
         foundUsers.add(user);
         foundUsers.add(otherUser);
         foundUsers.add(oldUser);
 
-        given(userRepository.findByBirthdateBetweenAndNameContains(LocalDate.parse(fromDate), null, null, PageRequest.of(page, size, Sort.by(orderList)))).willReturn(foundUsers.subList(0,size));
+        given(userRepository.findByBirthdateBetweenAndNameContains(LocalDate.parse(fromDate), null, null, PageRequest.of(page, size, Sort.by(sortOrderList)))).willReturn(foundUsers.subList(0,size));
 
-        mvc.perform(get(baseUrl+"birthdateBetweenAndNameContains?fromDate={fromDate}&page={page}&size={size}&order={firstOrder}&order={secondOrder}", fromDate, page, size,
-            orderList.get(0).getProperty(), orderList.get(1).getProperty())
+        mvc.perform(get(baseUrl+"birthdateBetweenAndNameContains?fromDate={fromDate}&page={page}&size={size}&sort={firstOrder}&sort={secondOrder}", fromDate, page, size,
+            sortOrderList.get(0).getProperty(), sortOrderList.get(1).getProperty())
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$", hasSize(size)))

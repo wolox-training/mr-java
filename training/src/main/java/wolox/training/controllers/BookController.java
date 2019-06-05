@@ -54,10 +54,7 @@ public class BookController {
     public List<Book> findAll(@RequestParam(name="author", required=false) String author, @RequestParam(name="genre", required=false) String genre,
         @RequestParam(name="image", required=false) String image, @RequestParam(name="title", required=false) String title, @RequestParam(name="subtitle", required=false) String subtitle,
         @RequestParam(name="publisher", required=false) String publisher, @RequestParam(name="year", required=false) String year, @RequestParam(name="pages", required=false) Integer pages,
-        @RequestParam(name="isbn", required=false) String isbn, @RequestParam(name="page", required = false, defaultValue = "0") Integer page,
-        @RequestParam(name="size", required = false, defaultValue = "5") Integer size, @RequestParam(name="order", required = false, defaultValue = "title") List<Order> order){
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by(order));
+        @RequestParam(name="isbn", required=false) String isbn, Pageable pageable){
 
         return bookRepository.findAll(author, genre, image, title, subtitle, publisher, year, pages, isbn, pageable);
     }
@@ -112,10 +109,7 @@ public class BookController {
 
     @GetMapping("/byPublisherAndByGenreAndByYear")
     public List<Book> getBooksByPublisherAndByGenreAndByYear(@RequestParam(name="publisher", required=false) String publisher, @RequestParam(name="genre", required=false) String genre,
-        @RequestParam(name="year", required=false) String year, @RequestParam(name="page", required = false, defaultValue = "0") Integer page,
-        @RequestParam(name="size", required = false, defaultValue = "5") Integer size, @RequestParam(name="order", required = false, defaultValue = "title") List<Order> order){
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by(order));
+        @RequestParam(name="year", required=false) String year, Pageable pageable){
 
         return bookRepository.findByPublisherAndGenreAndYear(publisher, genre, year, pageable);
     }
