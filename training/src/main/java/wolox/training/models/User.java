@@ -26,7 +26,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import wolox.training.exceptions.BookAlreadyOwnedException;
 import wolox.training.exceptions.BookNotFoundException;
 
-@Entity(name="users")
+@Entity(name="Users")
 public class User {
 
 

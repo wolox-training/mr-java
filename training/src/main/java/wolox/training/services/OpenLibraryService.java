@@ -1,6 +1,5 @@
 package wolox.training.services;
 
-import com.fasterxml.jackson.databind.util.ArrayIterator;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
