@@ -10,6 +10,7 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.junit4.SpringRunner;
 import wolox.training.exceptions.BookNotFoundException;
 import wolox.training.models.Book;
@@ -104,30 +105,41 @@ public class BookRepositoryIntegrationTest {
     //region find book by publisher, genre and year
     @Test
     public void givenPublisherGenreAndYear_whenFindByPublisherGenreAndYear_thenReturnBooks(){
-        assertThat(bookRepository.findByPublisherAndGenreAndYear("Bloomsbury Publishing", "Fantasy", "1998")).contains(otherBook).doesNotContain(book);
+        assertThat(bookRepository.findByPublisherAndGenreAndYear("Bloomsbury Publishing", "Fantasy", "1998", null)).contains(otherBook).doesNotContain(book);
     }
 
     @Test
     public void givenNullYear_whenFindByPublisherGenreAndYear_thenReturnBooks(){
-        assertThat(bookRepository.findByPublisherAndGenreAndYear("Bloomsbury Publishing", "Fantasy", null)).contains(otherBook, book);
+        assertThat(bookRepository.findByPublisherAndGenreAndYear("Bloomsbury Publishing", "Fantasy", null, null)).contains(otherBook, book);
     }
 
     @Test
     public void givenNullPublisher_whenFindByPublisherGenreAndYear_thenReturnBooks(){
-        assertThat(bookRepository.findByPublisherAndGenreAndYear(null, "Fantasy", "1998")).contains(otherBook);
+        assertThat(bookRepository.findByPublisherAndGenreAndYear(null, "Fantasy", "1998", null)).contains(otherBook);
+    }
+
+    @Test
+    public void givenNullYearAndPageable_whenFindByPublisherGenreAndYear_thenReturnBooks(){
+        assertThat(bookRepository.findByPublisherAndGenreAndYear("Bloomsbury Publishing", "Fantasy", null, PageRequest.of(0,5))).contains(otherBook, book).hasSize(5);
     }
     //endregion
 
     //region find all books with filters
     @Test
     public void givenAuthorProperty_whenFindAll_thenReturnBooksWithAuthor(){
-        assertThat(bookRepository.findAll("J. K. Rowling", null, null, null, null, null, null, null, null)).contains(book, otherBook)
+        assertThat(bookRepository.findAll("J. K. Rowling", null, null, null, null, null, null, null, null, null)).contains(book, otherBook)
             .doesNotContain(anotherBook);
     }
 
     @Test
     public void givenNoProperties_whenFindAll_thenReturnAllBooks(){
-        assertThat(bookRepository.findAll(null, null, null, null, null, null, null, null, null)).contains(book, otherBook, anotherBook);
+        assertThat(bookRepository.findAll(null, null, null, null, null, null, null, null, null, null)).contains(book, otherBook, anotherBook);
+    }
+
+    @Test
+    public void givenNoPropertiesButPageable_whenFindAll_thenReturnAllBooks(){
+        assertThat(bookRepository.findAll(null, null, null, null, null, null, null, null, null,
+            PageRequest.of(0,5))).hasSize(5);
     }
     //endregion
 
