@@ -12,6 +12,10 @@ import static wolox.training.TestUtilities.createDefaultBook;
 import static wolox.training.TestUtilities.createDefaultUser;
 import java.time.LocalDate;
 import org.json.JSONObject;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.security.test.context.support.WithMockUser;
 import java.util.ArrayList;
 import java.util.List;
@@ -61,13 +65,15 @@ public class UserControllerIntegrationTest {
     private String bookAlreadyOwnedExReason;
     private String bookNotInUserListExReason;
     private Book book;
-
+    private Pageable defaultPageable;
 
     @Before
     public void setUp() throws NoSuchFieldException, IllegalAccessException {
 
         baseUrl = "/api/users/";
         nonExistingId = 0L;
+
+        defaultPageable = PageRequest.of(0,20);
 
         userNotFoundExReason = "User Not Found";
         nullAttributesExReason = "Received Null Attributes";
@@ -84,15 +90,13 @@ public class UserControllerIntegrationTest {
         users.add(user);
         users.add(otherUser);
 
-        given(userRepository.findAll()).willReturn(users);
+        given(userRepository.findAllUsers(defaultPageable)).willReturn(users);
         given(userRepository.findById(user.getId())).willReturn(java.util.Optional.ofNullable(user));
         given(userRepository.findById(nonExistingId)).willReturn(Optional.empty());
 
         given(bookRepository.findById(book.getId())).willReturn(Optional.of(book));
         given(bookRepository.findById(nonExistingId)).willReturn(Optional.empty());
-
     }
-
 
     //region get username
     @WithMockUser(username = "user", password = "1234")
@@ -137,6 +141,37 @@ public class UserControllerIntegrationTest {
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isUnauthorized());
     }
+
+    @WithMockUser(username = "user", password = "1234")
+    @Test
+    public void givenPageableAndNameSorting_whenGetAllUsers_thenReturnJsonArray()
+        throws Exception {
+        User newUser = createDefaultUser(3L, "Newbie");
+        newUser.setBirthdate(LocalDate.of(1960, 5, 5));
+
+        Integer page = 0;
+        Integer size = 5;
+        List<Order> sortOrderList = new ArrayList<>();
+        sortOrderList.add(new Order(null, "name"));
+        sortOrderList.add(new Order(null, "id"));
+
+        List<User> foundUsers = new ArrayList<>();
+        foundUsers.add(user);
+        foundUsers.add(otherUser);
+        foundUsers.add(newUser);
+
+        given(userRepository.findAllUsers(PageRequest.of(page, size, Sort.by(sortOrderList)))).willReturn(foundUsers);
+
+        mvc.perform(get(baseUrl+"?page={page}&size={size}&sort={firstOrder}&sort={secondOrder}", page, size,
+            sortOrderList.get(0).getProperty(), sortOrderList.get(1).getProperty())
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(foundUsers.size())))
+            .andExpect(jsonPath("$[0].name", is(foundUsers.get(0).getName())))
+            .andExpect(jsonPath("$[1].name", is(foundUsers.get(1).getName())))
+            .andExpect(jsonPath("$[2].name", is(foundUsers.get(2).getName())));
+    }
+
     //endregion
 
     //region get one user
@@ -453,7 +488,7 @@ public class UserControllerIntegrationTest {
 
         List<User> foundUsers = new ArrayList<>();
         foundUsers.add(oldUser);
-        given(userRepository.findByBirthdateBetweenAndNameContains(LocalDate.parse(fromDate), LocalDate.parse(toDate), characters)).willReturn(foundUsers);
+        given(userRepository.findByBirthdateBetweenAndNameContains(LocalDate.parse(fromDate), LocalDate.parse(toDate), characters, defaultPageable)).willReturn(foundUsers);
 
         mvc.perform(get(baseUrl+"birthdateBetweenAndNameContains?fromDate={fromDate}&toDate={toDate}&characters={characters}", fromDate, toDate, characters)
             .contentType(MediaType.APPLICATION_JSON))
@@ -504,7 +539,7 @@ public class UserControllerIntegrationTest {
         List<User> foundUsers = new ArrayList<>();
         foundUsers.add(oldUser);
         foundUsers.add(otherOldUser);
-        given(userRepository.findByBirthdateBetweenAndNameContains(LocalDate.parse(fromDate), LocalDate.parse(toDate), null)).willReturn(foundUsers);
+        given(userRepository.findByBirthdateBetweenAndNameContains(LocalDate.parse(fromDate), LocalDate.parse(toDate), null, defaultPageable)).willReturn(foundUsers);
 
         mvc.perform(get(baseUrl+"birthdateBetweenAndNameContains?fromDate={fromDate}&toDate={toDate}", fromDate, toDate)
             .contentType(MediaType.APPLICATION_JSON))
@@ -532,7 +567,7 @@ public class UserControllerIntegrationTest {
         List<User> foundUsers = new ArrayList<>();
         foundUsers.add(oldUser);
         foundUsers.add(otherOldUser);
-        given(userRepository.findByBirthdateBetweenAndNameContains(null, LocalDate.parse(toDate), characters)).willReturn(foundUsers);
+        given(userRepository.findByBirthdateBetweenAndNameContains(null, LocalDate.parse(toDate), characters, defaultPageable)).willReturn(foundUsers);
 
         mvc.perform(get(baseUrl+"birthdateBetweenAndNameContains?toDate={toDate}&characters={characters}", toDate, characters)
             .contentType(MediaType.APPLICATION_JSON))
@@ -559,13 +594,46 @@ public class UserControllerIntegrationTest {
 
         List<User> foundUsers = new ArrayList<>();
         foundUsers.add(otherOldUser);
-        given(userRepository.findByBirthdateBetweenAndNameContains(LocalDate.parse(fromDate), null, characters)).willReturn(foundUsers);
+        given(userRepository.findByBirthdateBetweenAndNameContains(LocalDate.parse(fromDate), null, characters, defaultPageable)).willReturn(foundUsers);
 
         mvc.perform(get(baseUrl+"birthdateBetweenAndNameContains?fromDate={fromDate}&characters={characters}", fromDate, characters)
             .contentType(MediaType.APPLICATION_JSON))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$", hasSize(foundUsers.size())))
             .andExpect(jsonPath("$[0].name", is(otherOldUser.getName())));
+    }
+
+    @WithMockUser(username = "user", password = "1234")
+    @Test
+    public void givenFromDateAndPageable_whenFindByBirthdateBetweenAndNameContains_thenReturnJsonArray()
+        throws Exception {
+
+        User oldUser = createDefaultUser(3L, "oldie");
+        oldUser.setBirthdate(LocalDate.of(1960, 5, 5));
+        oldUser.setName("Oldie");
+
+        String fromDate = "1960-03-05";
+
+        Integer page = 0;
+        Integer size = 2;
+        List<Order> sortOrderList = new ArrayList<>();
+        sortOrderList.add(new Order(null, "name"));
+        sortOrderList.add(new Order(null, "id"));
+
+        List<User> foundUsers = new ArrayList<>();
+        foundUsers.add(user);
+        foundUsers.add(otherUser);
+        foundUsers.add(oldUser);
+
+        given(userRepository.findByBirthdateBetweenAndNameContains(LocalDate.parse(fromDate), null, null, PageRequest.of(page, size, Sort.by(sortOrderList)))).willReturn(foundUsers.subList(0,size));
+
+        mvc.perform(get(baseUrl+"birthdateBetweenAndNameContains?fromDate={fromDate}&page={page}&size={size}&sort={firstOrder}&sort={secondOrder}", fromDate, page, size,
+            sortOrderList.get(0).getProperty(), sortOrderList.get(1).getProperty())
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$", hasSize(size)))
+            .andExpect(jsonPath("$[0].name", is(user.getName())))
+            .andExpect(jsonPath("$[1].name", is(otherUser.getName())));
     }
     //enregion
 
