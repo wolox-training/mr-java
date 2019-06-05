@@ -8,6 +8,11 @@ import java.lang.reflect.Field;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.bcrypt.BCrypt;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import wolox.training.models.Book;
 import wolox.training.models.User;
 
@@ -43,11 +48,11 @@ public abstract class TestUtilities {
         return ow.writeValueAsString(obj);
     }
 
-    public static User createDefaultUser(Long id, String name)
+    public static User createDefaultUser(Long id, String username)
         throws IllegalAccessException, NoSuchFieldException {
 
         LocalDate birthdate =  LocalDate.of(1990, 05, 9);
-        User user = new User(name, "anabanana", birthdate);
+        User user = new User("default", username, birthdate, "1234");
 
         user.setBooks(generateBooks());
 
@@ -70,6 +75,12 @@ public abstract class TestUtilities {
         books.add(otherBook);
 
         return books;
+    }
+
+    @Bean
+    public static PasswordEncoder encoder(){
+
+        return new BCryptPasswordEncoder();
     }
 
 

@@ -13,19 +13,22 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
-import javax.persistence.JoinColumn;
-import javax.persistence.JoinTable;
 import javax.persistence.ManyToMany;
 import javax.validation.constraints.NotNull;
 import org.postgresql.shaded.com.ongres.scram.common.util.Preconditions;
+import org.springframework.context.annotation.Bean;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import wolox.training.exceptions.BookAlreadyOwnedException;
 import wolox.training.exceptions.BookNotFoundException;
 
-@Entity(name="users")
+@Entity(name="Users")
 public class User {
+
 
     @Id
     @GeneratedValue
@@ -33,6 +36,10 @@ public class User {
 
     @NotNull
     private String username;
+
+    @NotNull @Column(length = 60)
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    private String password;
 
     @NotNull
     private String name;
@@ -51,10 +58,11 @@ public class User {
 
     }
 
-    public User(String name, String username, LocalDate birthdate){
+    public User(String name, String username, LocalDate birthdate, String password){
         this.setName(name);
         this.setUsername(username);
         this.setBirthdate(birthdate);
+        this.setPassword(password);
     }
 
     public Long getId() {
@@ -69,6 +77,15 @@ public class User {
 
         Preconditions.checkNotNull(username, "The username cannot be null");
         this.username = username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        Preconditions.checkNotNull(password, "The password cannot be null");
+        this.password = encoder().encode(password);
     }
 
     public String getName() {
@@ -147,4 +164,8 @@ public class User {
         return Objects.hash(id, username, name, birthdate, books);
     }
 
+    @Bean
+    public PasswordEncoder encoder(){
+        return new BCryptPasswordEncoder();
+    }
 }

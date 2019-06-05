@@ -12,6 +12,8 @@ import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabas
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.dao.EmptyResultDataAccessException;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.test.context.junit4.SpringRunner;
 import wolox.training.exceptions.BookAlreadyOwnedException;
 import wolox.training.exceptions.UserNotFoundException;
@@ -41,8 +43,8 @@ public class UserRepositoryIntegrationTest {
     public void setUp() throws BookAlreadyOwnedException {
         nonExistingId = 0L;
 
-        user = new User("Nick", "Nick27", LocalDate.of(1999,3,27));
-        otherUser = new User("Jennifer", "Jenny1995", LocalDate.of(1995,7,9));
+        user = new User("Nick", "Nick27", LocalDate.of(1999,3,27), "1234");
+        otherUser = new User("Jennifer", "Jenny1995", LocalDate.of(1995,7,9), "1234");
 
         book =  new Book("J. K. Rowling", "image.png", "Harry Potter and the Philosopher's Stone",
             "-", "Bloomsbury Publishing", "1997", 223, "9780747532743", "Fantasy");
@@ -59,6 +61,15 @@ public class UserRepositoryIntegrationTest {
         entityManager.persist(otherUser);
         entityManager.flush();
     }
+
+    //region find all users
+
+    @Test
+    public void givenPageSize_whenFindAllUsers_thenReturnUsersListWithSize(){
+        assertThat(userRepository.findAllUsers(PageRequest.of(0,5))).hasSize(5);
+    }
+    //endregion
+
 
     //region find user by id
     @Test
@@ -77,7 +88,7 @@ public class UserRepositoryIntegrationTest {
     //region save user
     @Test
     public void whenSaveUser_thenReturnUser(){
-        User newUser = new User("Mike", "Newbie", LocalDate.of(1990, 5, 3));
+        User newUser = new User("Mike", "Newbie", LocalDate.of(1990, 5, 3), "1234");
 
         User foundUser = userRepository.save(newUser);
 
@@ -86,7 +97,7 @@ public class UserRepositoryIntegrationTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void givenNullAttribute_whenSaveUser_thenThrowIllegalArgument(){
-        User newUser = new User("Mike", null, LocalDate.of(1990, 5, 3));
+        User newUser = new User("Mike", null, LocalDate.of(1990, 5, 3), "1234");
 
         User foundUser = userRepository.save(newUser);
     }
@@ -110,5 +121,31 @@ public class UserRepositoryIntegrationTest {
     }
     //endregion
 
+    //region find user by birthdate between dates and name containing characters
+    @Test
+    public void givenDatesAndCharacters_whenFindByBirthdateBetweenAndNameContains_thenReturnUsers(){
+        assertThat(userRepository.findByBirthdateBetweenAndNameContains(LocalDate.of(1950, 05, 05), LocalDate.of(1996, 05, 05), "en", null)).contains(otherUser);
+    }
 
+    @Test
+    public void givenNullCharacters_whenFindByBirthdateBetweenAndNameContains_thenReturnUsers(){
+        assertThat(userRepository.findByBirthdateBetweenAndNameContains(LocalDate.of(1950, 05, 05), LocalDate.of(1996, 05, 05), null, null)).contains(otherUser);
+    }
+
+    @Test
+    public void givenNullToDate_whenFindByBirthdateBetweenAndNameContains_thenReturnUsers(){
+        assertThat(userRepository.findByBirthdateBetweenAndNameContains( LocalDate.of(1990, 05, 05), null, "i", null)).contains(otherUser).contains(user);
+    }
+
+    @Test
+    public void givenNullFromDate_whenFindByBirthdateBetweenAndNameContains_thenReturnUsers(){
+        assertThat(userRepository.findByBirthdateBetweenAndNameContains( null, LocalDate.of(1996, 05, 05), "i", null)).contains(otherUser);
+    }
+
+    @Test
+    public void givenNullCharactersButPageable_whenFindByBirthdateBetweenAndNameContains_thenReturnUsers(){
+        assertThat(userRepository.findByBirthdateBetweenAndNameContains(LocalDate.of(1994, 05, 05), LocalDate.of(1996, 05, 05), null,PageRequest.of(0, 3,
+            Sort.by("birthdate")))).hasSize(3);
+    }
+    //endregion
 }
