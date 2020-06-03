@@ -120,7 +120,7 @@ public class BookRepositoryIntegrationTest {
 
     @Test
     public void givenNullYearAndPageable_whenFindByPublisherGenreAndYear_thenReturnBooks(){
-        assertThat(bookRepository.findByPublisherAndGenreAndYear("Bloomsbury Publishing", "Fantasy", null, PageRequest.of(0,5))).contains(otherBook, book).hasSize(5);
+        assertThat(bookRepository.findByPublisherAndGenreAndYear("Bloomsbury Publishing", "Fantasy", null, PageRequest.of(0,5))).contains(otherBook, book).hasSize(2);
     }
     //endregion
 
@@ -139,7 +139,7 @@ public class BookRepositoryIntegrationTest {
     @Test
     public void givenNoPropertiesButPageable_whenFindAll_thenReturnAllBooks(){
         assertThat(bookRepository.findAll(null, null, null, null, null, null, null, null, null,
-            PageRequest.of(0,5))).hasSize(5);
+            PageRequest.of(0,5))).hasSize(3);
     }
     //endregion
 

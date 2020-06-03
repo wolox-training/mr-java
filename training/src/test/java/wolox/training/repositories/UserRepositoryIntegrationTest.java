@@ -66,7 +66,7 @@ public class UserRepositoryIntegrationTest {
 
     @Test
     public void givenPageSize_whenFindAllUsers_thenReturnUsersListWithSize(){
-        assertThat(userRepository.findAllUsers(PageRequest.of(0,5))).hasSize(5);
+        assertThat(userRepository.findAllUsers(PageRequest.of(0,5))).hasSize(2);
     }
     //endregion
 
@@ -145,7 +145,7 @@ public class UserRepositoryIntegrationTest {
     @Test
     public void givenNullCharactersButPageable_whenFindByBirthdateBetweenAndNameContains_thenReturnUsers(){
         assertThat(userRepository.findByBirthdateBetweenAndNameContains(LocalDate.of(1994, 05, 05), LocalDate.of(1996, 05, 05), null,PageRequest.of(0, 3,
-            Sort.by("birthdate")))).hasSize(3);
+            Sort.by("birthdate")))).hasSize(1);
     }
     //endregion
 }
