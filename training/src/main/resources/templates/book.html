@@ -1,0 +1,73 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <title>Books</title>
+
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+
+</head>
+<body>
+
+  <div class="container">
+
+    <main role="main">
+      <div class="row py-5">
+        <h3 th:text="'Book '"></h3>
+      </div>
+      <form ACTION="#" th:object="${book}" th:action="@{/create}"  method="POST">
+        <input type="hidden" th:field="*{id}"/>
+
+        <div class="form-group">
+          <label for="author">Author name</label>
+          <input type="text" class="form-control" id="author" placeholder="Enter author" th:field="*{author}"/>
+        </div>
+
+        <div class="form-group">
+          <label for="genre">Genre</label>
+          <input type="text" class="form-control" id="genre" placeholder="Enter genre" th:field="*{genre}"/>
+        </div>
+
+        <div class="form-group">
+          <label for="image">Image</label>
+          <input type="text" class="form-control" id="image" placeholder="Enter image" th:field="*{image}"/>
+        </div>
+
+        <div class="form-group">
+          <label for="ISBN">Isbn</label>
+          <input type="text" class="form-control" id="ISBN" placeholder="Enter ISBN" th:field="*{ISBN}"/>
+        </div>
+
+        <div class="form-group">
+          <label for="pages">Pages</label>
+          <input type="text" class="form-control" id="pages" placeholder="Enter pages" th:field="*{pages}"/>
+        </div>
+
+        <div class="form-group">
+          <label for="publisher">Publisher</label>
+          <input type="text" class="form-control" id="publisher" placeholder="Enter publisher" th:field="*{publisher}"/>
+        </div>
+
+        <div class="form-group">
+          <label for="subtitle">Subtitle</label>
+          <input type="text" class="form-control" id="subtitle" placeholder="Enter subtitle" th:field="*{subtitle}"/>
+        </div>
+
+        <div class="form-group">
+          <label for="title">Title</label>
+          <input type="text" class="form-control" id="title" placeholder="Enter title" th:field="*{title}"/>
+        </div>
+        <div class="form-group">
+          <label for="year">Year</label>
+          <input type="text" class="form-control" id="year" placeholder="Enter year" th:field="*{year}"/>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Submit</button>
+        <a th:href="@{/delete(id=*{id})}" class="btn btn-primary">Delete</a>
+      </form>
+    </main>
+  </div>
+</body>
+</html>
